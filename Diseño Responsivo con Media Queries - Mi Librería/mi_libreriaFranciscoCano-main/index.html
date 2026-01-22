@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LM manga - Librería de Manga y Anime</title>
+    <meta name="description" content="El lugar donde la pasión por el manga y el anime cobra vida.">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <!-- ============================================
+         CABECERA - Header con logo y nombre
+         ============================================ -->
+    <header class="main-header">
+        <h1>LM manga</h1>
+        <div class="logo-container">
+            <img src="./img/image-removebg-preview.png" alt="Logo LM manga" width="60" height="60">
+        </div>
+    </header>
+
+    <!-- ============================================
+         NAVEGACIÓN - Buscador y enlaces
+         ============================================ -->
+    <nav class="main-nav">
+        <!-- Botón hamburguesa (visible solo en móvil) -->
+        <button class="hamburger-btn" aria-label="Menú">☰</button>
+
+        <!-- Formulario de búsqueda -->
+        <form class="search-form" action="#" method="get">
+            <input type="search" name="q" placeholder="buscar en lm manga" class="search-input"
+                aria-label="Buscar productos">
+            <button type="submit" class="search-btn" aria-label="Buscar">🔍</button>
+        </form>
+
+        <!-- Lista de navegación -->
+        <ul class="nav-menu">
+            <li><a href="index.html">Inicio</a></li>
+            <li><a href="tienda.html">Tienda-online</a></li>
+            <li><a href="#registro">Registro</a></li>
+        </ul>
+    </nav>
+
+    <!-- ============================================
+         CONTENIDO PRINCIPAL
+         ============================================ -->
+    <main>
+        <!-- SECCIÓN 1: Zona de Presentación (Hero) -->
+        <section class="hero-section">
+            <div class="hero-text">
+                <h2>Bienvenido a LM manga</h2>
+                <p>El lugar donde la pasión por el manga y el anime cobra vida. Aquí encontrarás desde los clásicos más
+                    queridos hasta las últimas novedades, junto con figuras, pósters y artículos exclusivos del mundo
+                    otaku. Sumérgete en un espacio pensado para fans, coleccionistas y soñadores como tú.</p>
+            </div>
+            <div class="hero-img">
+                <img src="./img/todito.webp" alt="Personajes de anime" width="250" height="150">
+            </div>
+        </section>
+
+        <!-- SECCIÓN 2: Novedades - Artículos con descuento -->
+        <section class="novedades-section">
+            <h2>Artículos con 50% de descuento</h2>
+
+            <!-- Contenedor del carrusel -->
+            <div class="carousel-wrapper">
+                <!-- Botón anterior -->
+                <button class="carousel-btn carousel-btn-prev" aria-label="Anterior">‹</button>
+
+                <div class="productos-grid">
+                    <!-- Producto 1 -->
+                    <article class="producto-card">
+                        <h3>Your name</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/yourname.jpg" alt="Your name manga" width="150" height="200">
+                        </div>
+                        <p class="producto-descripcion">Una historia romántica e internacional que trasciende el tiempo,
+                            el
+                            espacio y los destinos.</p>
+                        <p class="producto-precio">9,02 €</p>
+                    </article>
+
+                    <!-- Producto 2 -->
+                    <article class="producto-card">
+                        <h3>One Piece</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/one.jpg" alt="One Piece manga" width="243" height="151">
+                            <span class="imagen-badge">243 x 151</span>
+                        </div>
+                        <p class="producto-descripcion">Las aventuras épicas de Luffy y su tripulación en busca del
+                            tesoro
+                            más grande.</p>
+                        <p class="producto-precio">6,65 €</p>
+                    </article>
+
+                    <!-- Producto 3 -->
+                    <article class="producto-card">
+                        <h3>Takopi</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/takopi.jpg" alt="Takopi manga" width="150" height="200">
+                        </div>
+                        <p class="producto-descripcion">Un alien llega felicidad a una niña solitaria, pero descubrirá
+                            el
+                            lado más oscuro del corazón humano.</p>
+                        <p class="producto-precio">9,45 €</p>
+                    </article>
+
+                    <!-- Producto 4 -->
+                    <article class="producto-card">
+                        <h3>Assassination Classroom</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/todo.jpg" alt="Assassination Classroom manga" width="150" height="200">
+                        </div>
+                        <p class="producto-descripcion">Una clase debe asesinar a su profesor alienígena antes de que
+                            destruya la Tierra.</p>
+                        <p class="producto-precio">8,50 €</p>
+                    </article>
+
+                    <!-- Producto 5 - NUEVO -->
+                    <article class="producto-card">
+                        <h3>Dragon ball</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/drgonball.jpg" alt="Dragon ball manga" width="150" height="200">
+                        </div>
+                        <p class="producto-descripcion">Una clase de parias debe matar a su excéntrico profesor antes de
+                            que destruya la Tierra.</p>
+                        <p class="producto-precio">8,50 €</p>
+                    </article>
+
+                    <!-- Producto 6 - NUEVO -->
+                    <article class="producto-card">
+                        <h3>Ataque a los titanes</h3>
+                        <div class="producto-imagen">
+                            <img src="./img/ataque.webp" alt="Ataque a los titanes manga" width="150" height="200">
+                        </div>
+                        <p class="producto-descripcion">Un alien intenta traer felicidad a una niña acosada, pero
+                            termina descubriendo el lado más oscuro del ser humano.</p>
+                        <p class="producto-precio">9,45 €</p>
+                    </article>
+                </div>
+
+                <!-- Botón siguiente -->
+                <button class="carousel-btn carousel-btn-next" aria-label="Siguiente">›</button>
+            </div>
+        </section>
+
+        <!-- SECCIÓN 3: Buscador de Tiendas -->
+        <section class="tiendas-section">
+            <h2>Buscador de tiendas</h2>
+
+            <div class="tiendas-container">
+                <!-- Columna izquierda: Buscador y listado -->
+                <div class="tiendas-columna-izq">
+                    <!-- Formulario de búsqueda (fuera del contenedor azul) -->
+                    <form class="tienda-form" action="#" method="get">
+                        <input type="search" name="tienda" placeholder="Buscar tienda..." class="tienda-input">
+                        <button type="submit" class="tienda-btn">Buscar 🔍</button>
+                    </form>
+
+                    <!-- Contenedor azul solo para las direcciones -->
+                    <div class="tiendas-lista-container">
+                        <div class="tiendas-lista">
+                            <div class="tienda-item">
+                                <p>Plaza 2 de Mayo, Av. Nicolás de Piérola 181, Lima 15001, Perú</p>
+                            </div>
+                            <div class="tienda-item">
+                                <p>Av. Nicolás de Piérola 235, Lima 15001, Perú</p>
+                            </div>
+                            <div class="tienda-item">
+                                <p>Sánchez Pinillos 147, Lima 15082, Perú</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Mapa -->
+                <div class="tiendas-mapa">
+                    <img src="./img/mapa_tiendas.png" alt="Mapa de tiendas" width="250" height="200">
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ============================================
+         PIE DE PÁGINA - Footer con 3 columnas
+         ============================================ -->
+    <footer class="main-footer">
+        <!-- Columna 1: Redes sociales -->
+        <div class="footer-col footer-social">
+            <a href="#facebook" aria-label="Facebook">📘</a>
+            <a href="#linkedin" aria-label="LinkedIn">🔗</a>
+            <a href="#twitter" aria-label="Twitter">✖️</a>
+            <a href="#instagram" aria-label="Instagram">📷</a>
+        </div>
+
+        <!-- Columna 2: Marca -->
+        <div class="footer-col footer-brand">
+            <p>© LM MANGA</p>
+        </div>
+
+        <!-- Columna 3: Enlaces legales -->
+        <div class="footer-col footer-legal">
+            <a href="#politicas">POLÍTICAS DE DATOS</a>
+            <a href="#cookies">COOKIES</a>
+        </div>
+    </footer>
+
+    <!-- JavaScript del carrusel -->
+    <script src="carousel.js"></script>
+    <!-- JavaScript del menú hamburguesa -->
+    <script src="menu.js"></script>
+</body>
+
+</html>
