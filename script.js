@@ -303,24 +303,42 @@ function updateOptionCount() {
 
 // ===== WHEEL DRAWING =====
 function drawWheel() {
+    if (!ctx || options.length === 0) {
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) - 10;
+        drawEmptyWheel(centerX, centerY, radius);
+        return;
+    }
+
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
     const radius = Math.min(centerX, centerY) - 10;
+    const anglePerSegment = (2 * Math.PI) / options.length;
 
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    // Save context state
+    ctx.save();
+
+    // Apply rotation
+    ctx.translate(centerX, centerY);
+    ctx.rotate((currentRotation * Math.PI) / 180);
+    ctx.translate(-centerX, -centerY);
+
     // Draw segments
     options.forEach((option, index) => {
-        const startAngle = index * anglePerSegment;
+        const startAngle = index * anglePerSegment - Math.PI / 2;
         const endAngle = startAngle + anglePerSegment;
+        const color = vibrantColors[index % vibrantColors.length];
 
         // Draw segment
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.closePath();
-        ctx.fillStyle = option.color;
+        ctx.fillStyle = color;
         ctx.fill();
 
         // Draw border
@@ -335,15 +353,32 @@ function drawWheel() {
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 18px Poppins';
+        ctx.font = 'bold 16px Poppins';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 4;
-        ctx.fillText(option.text, radius * 0.65, 0);
+        ctx.shadowOffsetX = 2;
+        ctx.shadowOffsetY = 2;
+
+        // Truncate long text
+        let displayText = option;
+        if (displayText.length > 12) {
+            displayText = displayText.substring(0, 12) + '...';
+        }
+
+        ctx.fillText(displayText, radius * 0.65, 5);
         ctx.restore();
     });
 
     // Draw center circle
-    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(centerX, centerY, 60, 0, 2 * Math.PI);
+    const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, 60);
+    gradient.addColorStop(0, '#667eea');
+    gradient.addColorStop(1, '#764ba2');
+    ctx.fillStyle = gradient;
+    ctx.fill();
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 4;
     ctx.stroke();
 
     // Restore context state
