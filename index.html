@@ -4,121 +4,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Guarda tus secretos de forma segura y privada">
-    <title>Mis Secretos - Guarda tus pensamientos privados</title>
+    <title>Los Duck Games</title>
+    <meta name="description"
+        content="Ruleta de decisiones interactiva para ayudarte a tomar decisiones de forma divertida">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-    <!-- Navigation Menu -->
+    <!-- Navigation Bar -->
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect width="32" height="32" rx="8" fill="url(#gradient)" />
-                    <path
-                        d="M16 9C13.2386 9 11 11.2386 11 14V15H10C9.44772 15 9 15.4477 9 16V22C9 22.5523 9.44772 23 10 23H22C22.5523 23 23 22.5523 23 22V16C23 15.4477 22.5523 15 22 15H21V14C21 11.2386 18.7614 9 16 9ZM19 15H13V14C13 12.3431 14.3431 11 16 11C17.6569 11 19 12.3431 19 14V15Z"
-                        fill="white" />
-                    <defs>
-                        <linearGradient id="gradient" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
-                            <stop stop-color="#9333EA" />
-                            <stop offset="1" stop-color="#C084FC" />
-                        </linearGradient>
-                    </defs>
-                </svg>
-                <span>Mis Secretos</span>
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <span class="brand-icon">🦆</span>
+                <span class="brand-text">Los Duck Games</span>
             </div>
-            <ul class="nav-menu">
-                <li><a href="index.html" class="nav-link active">Inicio</a></li>
-                <li><a href="secretos.html" class="nav-link">Secretos</a></li>
-            </ul>
+            <div class="navbar-nav">
+                <button class="nav-btn active" data-mode="wheel">
+                    <span class="nav-icon">🎯</span>
+                    <span class="nav-text">Ruleta</span>
+                </button>
+                <button class="nav-btn" data-mode="flappy">
+                    <span class="nav-icon">🦆</span>
+                    <span class="nav-text">Flappy</span>
+                </button>
+            </div>
+            <div class="navbar-controls">
+                <div class="theme-selector">
+                    <button class="control-btn" id="themeBtn" title="Cambiar tema">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                            <path
+                                d="M10 2V4M10 16V18M4 10H2M18 10H16M15.657 15.657L14.243 14.243M15.657 4.343L14.243 5.757M4.343 15.657L5.757 14.243M4.343 4.343L5.757 5.757"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                    </button>
+                    <div class="theme-dropdown" id="themeDropdown">
+                        <button class="theme-option" data-theme="dark">🌙 Oscuro</button>
+                        <button class="theme-option" data-theme="light">☀️ Claro</button>
+                        <button class="theme-option" data-theme="hellokitty">🎀 Hello Kitty</button>
+                        <button class="theme-option" data-theme="ocean">🌊 Océano</button>
+                        <button class="theme-option" data-theme="doraemon">🤖 Doraemon</button>
+                    </div>
+                </div>
+                <button class="control-btn" id="soundBtn" title="Activar/Desactivar sonido">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" id="soundIcon">
+                        <path d="M9 4L5 8H2V12H5L9 16V4Z" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round" />
+                        <path
+                            d="M15.54 8.46C16.4774 9.39764 17.004 10.6692 17.004 11.995C17.004 13.3208 16.4774 14.5924 15.54 15.53"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </button>
+            </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <div class="hero-section">
-            <div class="hero-background"></div>
-            <div class="hero-content">
-                <h1 class="hero-title">
-                    <span class="gradient-text">Guarda tus secretos</span>
-                    <br>de forma segura
-                </h1>
-                <p class="hero-subtitle">Un espacio privado para tus pensamientos más íntimos</p>
+    <!-- Wheel Section -->
+    <section id="wheelSection" class="mode-section active">
+        <div class="container">
+            <header class="header">
+                <h1 class="title">🎯 Ruleta de Decisiones</h1>
+                <p class="subtitle">¿No sabes qué elegir? ¡Deja que la ruleta decida por ti!</p>
+            </header>
+
+            <main class="main-content">
+                <div class="content-grid">
+                    <!-- Options Panel -->
+                    <section class="options-panel">
+                        <div class="panel-header">
+                            <h2>Tus Opciones</h2>
+                            <span class="option-count" id="optionCount">3 opciones</span>
+                        </div>
+
+                        <div class="add-option-form">
+                            <input type="text" id="optionInput" class="option-input" placeholder="Escribe una opción..."
+                                maxlength="50">
+                            <button id="addOptionBtn" class="btn btn-add">
+                                <span class="btn-icon">+</span>
+                                Añadir
+                            </button>
+                        </div>
+
+                        <ul class="options-list" id="optionsList">
+                            <li class="option-item" data-index="0">
+                                <span class="option-color" style="background: #FF6B6B;"></span>
+                                <span class="option-text">Pizza</span>
+                                <button class="btn-delete" data-index="0">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </li>
+                            <li class="option-item" data-index="1">
+                                <span class="option-color" style="background: #4ECDC4;"></span>
+                                <span class="option-text">Sushi</span>
+                                <button class="btn-delete" data-index="1">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </li>
+                            <li class="option-item" data-index="2">
+                                <span class="option-color" style="background: #FFE66D;"></span>
+                                <span class="option-text">Hamburguesa</span>
+                                <button class="btn-delete" data-index="2">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                        <path d="M4 4L12 12M12 4L4 12" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" />
+                                    </svg>
+                                </button>
+                            </li>
+                        </ul>
+
+                        <button id="clearAllBtn" class="btn btn-secondary">
+                            Limpiar Todo
+                        </button>
+                    </section>
+
+                    <!-- Wheel Panel -->
+                    <section class="wheel-panel">
+                        <div class="wheel-container">
+                            <div class="wheel-pointer">▼</div>
+                            <canvas id="wheelCanvas" width="500" height="500"></canvas>
+                            <button id="spinBtn" class="spin-button">
+                                <span class="spin-text">GIRAR</span>
+                                <span class="spin-icon">🎲</span>
+                            </button>
+                        </div>
+                    </section>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Flappy Bird Section -->
+    <section id="flappySection" class="mode-section">
+        <div class="container">
+            <header class="header">
+                <h1 class="title">🦆 Flappy Duck</h1>
+                <p class="subtitle">¡Toca para volar y evita las tuberías!</p>
+            </header>
+
+            <main class="flappy-content">
+                <div class="flappy-game-container">
+                    <div class="game-info">
+                        <div class="score-panel">
+                            <div class="score-item">
+                                <span class="score-label">Puntuación</span>
+                                <span class="score-value" id="flappyScore">0</span>
+                            </div>
+                            <div class="score-item">
+                                <span class="score-label">Récord</span>
+                                <span class="score-value" id="flappyHighScore">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="canvas-wrapper">
+                        <canvas id="flappyCanvas" width="400" height="600"></canvas>
+                        <div class="game-overlay" id="flappyOverlay">
+                            <div class="overlay-content">
+                                <h2>🦆 Flappy Duck</h2>
+                                <p>Toca la pantalla o presiona ESPACIO para volar</p>
+                                <p class="instructions">Evita las tuberías y consigue la mayor puntuación</p>
+                                <button class="btn btn-primary" id="startFlappyBtn">Comenzar Juego</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="game-controls">
+                        <button class="control-button" id="flappyPauseBtn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path d="M10 4H6V20H10V4Z" fill="currentColor" />
+                                <path d="M18 4H14V20H18V4Z" fill="currentColor" />
+                            </svg>
+                            Pausa
+                        </button>
+                        <button class="control-button" id="flappyRestartBtn">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path
+                                    d="M4 12C4 7.58172 7.58172 4 12 4C14.5264 4 16.7792 5.17108 18.2454 7M20 12C20 16.4183 16.4183 20 12 20C9.47362 20 7.22075 18.8289 5.75463 17"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                                <path d="M18 3V7H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                            </svg>
+                            Reiniciar
+                        </button>
+                    </div>
+
+                    <div class="mobile-tap-area">
+                        <button class="tap-button" id="tapButton">
+                            <span class="tap-icon">👆</span>
+                            <span>TAP PARA VOLAR</span>
+                        </button>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
+    <!-- Winner Modal (Wheel) -->
+    <div id="winnerModal" class="modal">
+        <div class="modal-content">
+            <div class="confetti-container" id="confettiContainer"></div>
+            <div class="modal-header">
+                <h2>🎉 ¡Tenemos un Ganador! 🎉</h2>
+            </div>
+            <div class="modal-body">
+                <div class="winner-display">
+                    <div class="winner-label">La decisión es:</div>
+                    <div class="winner-text" id="winnerText">Pizza</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button id="closeModalBtn" class="btn btn-primary">¡Perfecto!</button>
+                <button id="spinAgainBtn" class="btn btn-secondary">Girar de Nuevo</button>
             </div>
         </div>
+    </div>
 
-        <div class="secret-container">
-            <div class="card">
-                <div class="card-header">
-                    <h2>Nuevo Secreto</h2>
-                    <p>Escribe lo que necesites guardar</p>
-                </div>
-                <div class="card-body">
-                    <textarea id="secretInput" class="secret-input" placeholder="Escribe tu secreto aquí..."
-                        rows="6"></textarea>
-                    <button id="saveButton" class="btn-primary">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M16.6667 9.16667V15.8333C16.6667 16.2754 16.4911 16.6993 16.1785 17.0118C15.866 17.3244 15.442 17.5 15 17.5H5.00001C4.55798 17.5 4.13406 17.3244 3.82149 17.0118C3.50893 16.6993 3.33334 16.2754 3.33334 15.8333V5.83333C3.33334 5.39131 3.50893 4.96738 3.82149 4.65482C4.13406 4.34226 4.55798 4.16667 5.00001 4.16667H11.6667M15 2.5H17.5V5M17.5 2.5L10 10L7.5 7.5L15 0L17.5 2.5Z"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                        Guardar Secreto
-                    </button>
+    <!-- Game Over Modal (Flappy Bird) -->
+    <div id="flappyGameOverModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💥 Game Over!</h2>
+            </div>
+            <div class="modal-body">
+                <div class="winner-display">
+                    <div class="winner-label">Tu puntuación:</div>
+                    <div class="winner-text" id="flappyFinalScore">0</div>
+                    <div class="winner-label" id="flappyNewRecordLabel" style="display: none;">
+                        🎉 ¡Nuevo Récord! 🎉
+                    </div>
                 </div>
             </div>
-
-            <div class="info-cards">
-                <div class="info-card">
-                    <div class="info-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M12 8V12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <path d="M12 16H12.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <h3>Privado</h3>
-                    <p>Tus secretos se guardan localmente en tu navegador</p>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2"
-                                stroke-linecap="round" stroke-linejoin="round" />
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                                stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <h3>Acumulativo</h3>
-                    <p>Todos tus secretos se guardan y organizan automáticamente</p>
-                </div>
-                <div class="info-card">
-                    <div class="info-icon">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" stroke="currentColor"
-                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                            <path
-                                d="M7 11V7C7 5.67392 7.52678 4.40215 8.46447 3.46447C9.40215 2.52678 10.6739 2 12 2C13.3261 2 14.5979 2.52678 15.5355 3.46447C16.4732 4.40215 17 5.67392 17 7V11"
-                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                        </svg>
-                    </div>
-                    <h3>Seguro</h3>
-                    <p>Sin conexión a internet, sin compartir datos</p>
-                </div>
+            <div class="modal-footer">
+                <button id="flappyPlayAgainBtn" class="btn btn-primary">Jugar de Nuevo</button>
+                <button id="flappyBackToMenuBtn" class="btn btn-secondary">Volver al Menú</button>
             </div>
         </div>
-    </main>
+    </div>
 
-    <script src="session.js"></script>
     <script src="script.js"></script>
 </body>
 
