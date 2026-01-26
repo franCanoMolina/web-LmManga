@@ -110,6 +110,7 @@ body {
     border-bottom: 1px solid var(--card-border);
     z-index: 1000;
     box-shadow: var(--shadow-md);
+    will-change: transform;
 }
 
 .navbar-content {

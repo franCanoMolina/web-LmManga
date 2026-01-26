@@ -310,33 +310,17 @@ function drawWheel() {
     // Clear canvas
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (options.length === 0) {
-        drawEmptyWheel(centerX, centerY, radius);
-        return;
-    }
-
-    const anglePerOption = (2 * Math.PI) / options.length;
-
-    // Save context state
-    ctx.save();
-
-    // Apply rotation
-    ctx.translate(centerX, centerY);
-    ctx.rotate((currentRotation * Math.PI) / 180);
-    ctx.translate(-centerX, -centerY);
-
-    // Draw each segment
+    // Draw segments
     options.forEach((option, index) => {
-        const startAngle = index * anglePerOption - Math.PI / 2;
-        const endAngle = startAngle + anglePerOption;
-        const color = vibrantColors[index % vibrantColors.length];
+        const startAngle = index * anglePerSegment;
+        const endAngle = startAngle + anglePerSegment;
 
         // Draw segment
         ctx.beginPath();
         ctx.moveTo(centerX, centerY);
         ctx.arc(centerX, centerY, radius, startAngle, endAngle);
         ctx.closePath();
-        ctx.fillStyle = color;
+        ctx.fillStyle = option.color;
         ctx.fill();
 
         // Draw border
@@ -347,31 +331,18 @@ function drawWheel() {
         // Draw text
         ctx.save();
         ctx.translate(centerX, centerY);
-        ctx.rotate(startAngle + anglePerOption / 2);
+        ctx.rotate(startAngle + anglePerSegment / 2);
         ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
         ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Poppins';
+        ctx.font = 'bold 18px Poppins';
         ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
         ctx.shadowBlur = 4;
-        ctx.shadowOffsetX = 2;
-        ctx.shadowOffsetY = 2;
-
-        // Truncate long text
-        let displayText = option;
-        if (displayText.length > 12) {
-            displayText = displayText.substring(0, 12) + '...';
-        }
-
-        ctx.fillText(displayText, radius * 0.65, 5);
+        ctx.fillText(option.text, radius * 0.65, 0);
         ctx.restore();
     });
 
     // Draw center circle
-    ctx.beginPath();
-    ctx.arc(centerX, centerY, 30, 0, 2 * Math.PI);
-    ctx.fillStyle = '#0f0f23';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
     ctx.lineWidth = 3;
     ctx.stroke();
 
@@ -700,7 +671,8 @@ function updateFlappyGame() {
     }
 
     // Update pipes
-    pipes.forEach(pipe => {
+    for (let i = pipes.length - 1; i >= 0; i--) {
+        const pipe = pipes[i];
         pipe.x -= PIPE_SPEED;
 
         // Check if bird passed pipe
@@ -716,11 +688,14 @@ function updateFlappyGame() {
             flappyGameOver();
             return;
         }
-    });
 
-    // Remove off-screen pipes and add new ones
-    pipes = pipes.filter(pipe => pipe.x > -PIPE_WIDTH);
+        // Remove off-screen pipes
+        if (pipe.x < -PIPE_WIDTH) {
+            pipes.splice(i, 1);
+        }
+    }
 
+    // Add new pipes
     if (pipes.length === 0 || pipes[pipes.length - 1].x < FLAPPY_CANVAS_WIDTH - 250) {
         pipes.push(createPipe(FLAPPY_CANVAS_WIDTH));
     }
