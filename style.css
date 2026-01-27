@@ -48,20 +48,20 @@
     --bg-gradient-2: rgba(255, 240, 245, 0.15);
 }
 
-/* ===== THEME: OCEAN ===== */
-[data-theme="ocean"] {
-    --primary-gradient: linear-gradient(135deg, #0077be 0%, #00a8cc 100%);
-    --secondary-gradient: linear-gradient(135deg, #00d4ff 0%, #0096c7 100%);
-    --success-gradient: linear-gradient(135deg, #48cae4 0%, #00b4d8 100%);
-    --dark-bg: #03045e;
-    --card-bg: rgba(0, 180, 216, 0.1);
-    --card-border: rgba(0, 180, 216, 0.3);
-    --text-primary: #caf0f8;
-    --text-secondary: #90e0ef;
-    --shadow-lg: 0 20px 60px rgba(0, 119, 190, 0.4);
-    --shadow-md: 0 10px 30px rgba(0, 119, 190, 0.3);
-    --bg-gradient-1: rgba(0, 119, 190, 0.2);
-    --bg-gradient-2: rgba(0, 212, 255, 0.2);
+/* ===== THEME: WINNIE THE POOH ===== */
+[data-theme="pooh"] {
+    --primary-gradient: linear-gradient(135deg, #F5C542 0%, #E8A735 100%);
+    --secondary-gradient: linear-gradient(135deg, #D2691E 0%, #CD853F 100%);
+    --success-gradient: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+    --dark-bg: #FFF8DC;
+    --card-bg: rgba(245, 197, 66, 0.15);
+    --card-border: rgba(210, 105, 30, 0.3);
+    --text-primary: #8B4513;
+    --text-secondary: #D2691E;
+    --shadow-lg: 0 20px 60px rgba(210, 105, 30, 0.3);
+    --shadow-md: 0 10px 30px rgba(210, 105, 30, 0.2);
+    --bg-gradient-1: rgba(245, 197, 66, 0.2);
+    --bg-gradient-2: rgba(232, 167, 53, 0.2);
 }
 
 /* ===== THEME: DORAEMON ===== */
@@ -78,6 +78,22 @@
     --shadow-md: 0 10px 30px rgba(0, 149, 218, 0.2);
     --bg-gradient-1: rgba(0, 149, 218, 0.1);
     --bg-gradient-2: rgba(255, 107, 157, 0.1);
+}
+
+/* ===== THEME: VEGETTA777 ===== */
+[data-theme="vegetta777"] {
+    --primary-gradient: linear-gradient(135deg, #d018d0 0%, #a015a0 100%);
+    --secondary-gradient: linear-gradient(135deg, #FF10F0 0%, #d018d0 100%);
+    --success-gradient: linear-gradient(135deg, #E040FB 0%, #BA68C8 100%);
+    --dark-bg: #1a0a1a;
+    --card-bg: rgba(208, 24, 208, 0.1);
+    --card-border: rgba(208, 24, 208, 0.3);
+    --text-primary: #FF10F0;
+    --text-secondary: #d018d0;
+    --shadow-lg: 0 20px 60px rgba(208, 24, 208, 0.5);
+    --shadow-md: 0 10px 30px rgba(208, 24, 208, 0.3);
+    --bg-gradient-1: rgba(208, 24, 208, 0.2);
+    --bg-gradient-2: rgba(255, 16, 240, 0.2);
 }
 
 * {
@@ -989,6 +1005,116 @@ body {
 .instructions {
     font-size: 0.95rem;
     margin-top: 0.5rem;
+}
+
+/* ===== MOTIVATIONAL MESSAGE SECTION ===== */
+.motivacion-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    padding: 2rem;
+}
+
+.motivacion-content {
+    text-align: center;
+    animation: fadeInScale 0.8s ease-out;
+}
+
+.motivacion-image {
+    max-width: min(200px, 50vw);
+    height: auto;
+    margin-bottom: 1.5rem;
+    animation: float 3s ease-in-out infinite;
+    filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.3));
+}
+
+@keyframes float {
+
+    0%,
+    100% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+}
+
+.motivacion-text {
+    font-size: clamp(3rem, 10vw, 8rem);
+    font-weight: 900;
+    background: linear-gradient(135deg, #FFD700 0%, #FF6B6B 50%, #FF10F0 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+    text-shadow: 0 0 40px rgba(255, 215, 0, 0.5);
+    animation: gradientShift 3s ease-in-out infinite;
+    letter-spacing: 0.05em;
+}
+
+.motivacion-subtitle {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 2rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.motivacion-emoji {
+    font-size: clamp(4rem, 12vw, 10rem);
+    animation: bounce 2s ease-in-out infinite;
+}
+
+@keyframes fadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes gradientShift {
+
+    0%,
+    100% {
+        filter: hue-rotate(0deg);
+    }
+
+    50% {
+        filter: hue-rotate(30deg);
+    }
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.8;
+        transform: scale(1.05);
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
 }
 
 /* ===== RESPONSIVE DESIGN ===== */
