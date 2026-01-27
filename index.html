@@ -221,7 +221,7 @@
         <div class="motivacion-container">
             <div class="motivacion-content">
                 <img src="grasa.png" alt="La Grasa" class="motivacion-image">
-                <h1 class="motivacion-text">ERES LA GRASE MI LOK@</h1>
+                <h1 class="motivacion-text">ERES LA GRASA MI LOK@</h1>
                 <div class="motivacion-emoji">🐎🐴</div>
             </div>
         </div>
@@ -249,16 +249,17 @@
 
     <!-- Game Over Modal (Flappy Bird) -->
     <div id="flappyGameOverModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>💥 Game Over!</h2>
-            </div>
-            <div class="modal-body">
-                <div class="winner-display">
-                    <div class="winner-label">Tu puntuación:</div>
-                    <div class="winner-text" id="flappyFinalScore">0</div>
-                    <div class="winner-label" id="flappyNewRecordLabel" style="display: none;">
-                        🎉 ¡Nuevo Récord! 🎉
+        <div class="modal-content flappy-gameover-custom">
+            <div class="gameover-background"></div>
+            <div class="gameover-content">
+                <h1 class="gameover-title">OOHHH NO HAS PERDIDO!!!!</h1>
+                <div class="gameover-stats">
+                    <div class="stat-item-gameover">
+                        <span class="stat-label">Puntuación:</span>
+                        <span class="stat-value" id="flappyFinalScore">0</span>
+                    </div>
+                    <div class="stat-item-gameover" id="flappyNewRecordLabel" style="display: none;">
+                        <span class="new-record-badge">🏆 ¡NUEVO RÉCORD!</span>
                     </div>
                 </div>
             </div>

@@ -131,7 +131,7 @@ const startFlappyBtn = document.getElementById('startFlappyBtn');
 const flappyPauseBtn = document.getElementById('flappyPauseBtn');
 const flappyRestartBtn = document.getElementById('flappyRestartBtn');
 const flappyGameOverModal = document.getElementById('flappyGameOverModal');
-const flappyFinalScoreEl = document.getElementById('flappyFinalScore');
+const flappyFinalScore = document.getElementById('flappyFinalScore');
 const flappyNewRecordLabel = document.getElementById('flappyNewRecordLabel');
 const flappyPlayAgainBtn = document.getElementById('flappyPlayAgainBtn');
 const flappyBackToMenuBtn = document.getElementById('flappyBackToMenuBtn');
@@ -654,6 +654,41 @@ function stopFlappyGame() {
     }
 }
 
+function flappyGameOver() {
+    console.log('🎮 flappyGameOver called!');
+    console.log('Modal element:', flappyGameOverModal);
+    stopFlappyGame();
+
+    // Update high score
+    if (flappyScore > flappyHighScore) {
+        flappyHighScore = flappyScore;
+        localStorage.setItem('flappyHighScore', flappyHighScore);
+        if (flappyNewRecordLabel) {
+            flappyNewRecordLabel.style.display = 'block';
+        }
+    } else {
+        if (flappyNewRecordLabel) {
+            flappyNewRecordLabel.style.display = 'none';
+        }
+    }
+
+    // Update final score display
+    if (flappyFinalScore) {
+        flappyFinalScore.textContent = flappyScore;
+        console.log('Score updated:', flappyScore);
+    }
+
+    // Show game over modal
+    if (flappyGameOverModal) {
+        console.log('Showing modal...');
+        flappyGameOverModal.classList.add('active');
+        console.log('Modal classes:', flappyGameOverModal.classList);
+    } else {
+        console.error('❌ Modal element not found!');
+    }
+}
+
+
 function toggleFlappyPause() {
     if (!isFlappyRunning) return;
 
@@ -927,19 +962,6 @@ function saveFlappyHighScore() {
     return false;
 }
 
-function flappyGameOver() {
-    stopFlappyGame();
-    playGameOverSound();
-
-    const isNewRecord = saveFlappyHighScore();
-
-    if (flappyFinalScoreEl) flappyFinalScoreEl.textContent = flappyScore;
-    if (flappyNewRecordLabel) {
-        flappyNewRecordLabel.style.display = isNewRecord ? 'block' : 'none';
-    }
-
-    flappyGameOverModal.classList.add('active');
-}
 
 // Sound effects for Flappy Bird
 function playFlappyJumpSound() {
