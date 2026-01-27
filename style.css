@@ -1,19 +1,26 @@
 /* ===== CSS VARIABLES & RESET ===== */
 :root {
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-    --dark-bg: #0f0f23;
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --card-border: rgba(255, 255, 255, 0.1);
-    --text-primary: #ffffff;
-    --text-secondary: #a0a0c0;
-    --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
-    --shadow-md: 0 10px 30px rgba(0, 0, 0, 0.3);
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --border-radius: 16px;
-    --bg-gradient-1: rgba(102, 126, 234, 0.1);
-    --bg-gradient-2: rgba(245, 87, 108, 0.1);
+    /* Simple Theme */
+    --primary-gradient: #3b82f6;
+    /* Solid Blue */
+    --secondary-gradient: #64748b;
+    /* Solid Slate */
+    --success-gradient: #22c55e;
+    /* Solid Green */
+    --dark-bg: #18191a;
+    /* Neutral Dark */
+    --card-bg: #242526;
+    /* Slightly lighter card */
+    --card-border: #3a3b3c;
+    --text-primary: #e4e6eb;
+    --text-secondary: #b0b3b8;
+    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --transition-smooth: all 0.2s ease;
+    --border-radius: 8px;
+    /* Sharper corners */
+    --bg-gradient-1: transparent;
+    --bg-gradient-2: transparent;
 }
 
 /* ===== THEME: LIGHT ===== */
@@ -325,7 +332,7 @@ body {
 }
 
 .main-content {
-    animation: fadeInUp 0.6s ease-out 0.2s backwards;
+    animation: fadeInUp 0.6s ease-out 0.1s backwards;
 }
 
 .content-grid {
@@ -520,6 +527,48 @@ body {
     word-break: break-word;
 }
 
+/* Flappy Game Over Custom */
+.flappy-gameover-custom {
+    position: relative;
+    /* Ensure absolute positioning works */
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    overflow: hidden;
+    padding: 0 !important;
+    width: 400px;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-close-x {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 2.5rem;
+    cursor: pointer;
+    z-index: 20;
+    line-height: 1;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    transition: transform 0.2s;
+}
+
+.modal-close-x:hover {
+    transform: scale(1.1);
+    color: #ff5252;
+}
+
+.gameover-background {
+    background: rgba(245, 87, 108, 0.2);
+    color: #f5576c;
+}
+
 .btn-delete {
     background: transparent;
     border: none;
@@ -707,6 +756,79 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: center;
+}
+
+/* ===== MENU SECTION ===== */
+.menu-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.menu-card {
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.menu-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+    opacity: 0;
+    transition: var(--transition-smooth);
+}
+
+.menu-card:hover {
+    transform: translateY(-10px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.menu-card:hover::before {
+    opacity: 1;
+}
+
+.menu-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.3));
+    transition: var(--transition-smooth);
+}
+
+.menu-card:hover .menu-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.menu-card h3 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.menu-card p {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    line-height: 1.6;
 }
 
 /* ===== ANIMATIONS ===== */
@@ -1005,6 +1127,61 @@ body {
 .instructions {
     font-size: 0.95rem;
     margin-top: 0.5rem;
+}
+
+/* Character Selection */
+.character-selection {
+    display: flex;
+    justify-content: center;
+    gap: 1.5rem;
+    margin: 1.5rem 0;
+}
+
+.character-option {
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px solid transparent;
+    border-radius: 12px;
+    padding: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 100px;
+}
+
+.character-option:hover {
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.character-option.selected {
+    background: rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+}
+
+.char-preview {
+    font-size: 2.5rem;
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.char-preview.img-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.character-option span {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 /* ===== MOTIVATIONAL MESSAGE SECTION ===== */

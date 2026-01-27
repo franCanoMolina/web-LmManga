@@ -23,6 +23,9 @@ let flappyGameLoop = null;
 let isFlappyRunning = false;
 let isFlappyPaused = false;
 let frameCount = 0;
+let selectedCharacter = 'duck';
+let charImage = new Image();
+charImage.src = 'fran.png';
 
 // ===== AUDIO CONTEXT =====
 let audioContext = null;
@@ -196,8 +199,15 @@ function attachEventListeners() {
     });
     if (flappyBackToMenuBtn) flappyBackToMenuBtn.addEventListener('click', () => {
         flappyGameOverModal.classList.remove('active');
-        switchMode('wheel');
+        switchMode('menu');
     });
+
+    const flappyCloseX = document.getElementById('flappyCloseX');
+    if (flappyCloseX) {
+        flappyCloseX.addEventListener('click', () => {
+            flappyGameOverModal.classList.remove('active');
+        });
+    }
 
     // Flappy jump controls
     document.addEventListener('keydown', (e) => {
@@ -222,6 +232,28 @@ function attachEventListeners() {
             }
         });
     }
+
+
+    // Character Selection
+    const charOptions = document.querySelectorAll('.character-option');
+    charOptions.forEach(opt => {
+        opt.addEventListener('click', () => {
+            // Remove selected class from all
+            charOptions.forEach(o => o.classList.remove('selected'));
+            // Add to clicked
+            opt.classList.add('selected');
+            // Update state
+            selectedCharacter = opt.dataset.char;
+        });
+    });
+
+    // Menu cards
+    document.querySelectorAll('.menu-card').forEach(card => {
+        card.addEventListener('click', () => {
+            const mode = card.dataset.mode;
+            switchMode(mode);
+        });
+    });
 }
 
 // ===== OPTION MANAGEMENT =====
@@ -584,6 +616,12 @@ function loadSoundPreference() {
 
 // ===== NAVIGATION SYSTEM =====
 function initNavigation() {
+    const brandBtn = document.querySelector('.navbar-brand');
+    if (brandBtn) {
+        brandBtn.style.cursor = 'pointer';
+        brandBtn.addEventListener('click', () => switchMode('menu'));
+    }
+
     navBtns.forEach(btn => {
         btn.addEventListener('click', () => {
             const mode = btn.dataset.mode;
@@ -599,8 +637,20 @@ function switchMode(mode) {
     });
 
     // Update sections
+    // Update sections
     modeSections.forEach(section => {
-        section.classList.toggle('active', section.id === `${mode}Section`);
+        const isActive = section.id === `${mode}Section`;
+        section.classList.toggle('active', isActive);
+
+        // If entering menu, ensure animation replays
+        if (isActive && mode === 'menu') {
+            const content = section.querySelector('.main-content');
+            if (content) {
+                content.style.animation = 'none';
+                content.offsetHeight; /* trigger reflow */
+                content.style.animation = null;
+            }
+        }
     });
 
     // Stop Flappy Bird if switching away
@@ -797,149 +847,120 @@ function checkPipeCollision(pipe) {
     return false;
 }
 
+
 function drawFlappyBird() {
     if (!flappyCtx) return;
 
-    // Clear canvas with sky gradient
-    const skyGradient = flappyCtx.createLinearGradient(0, 0, 0, FLAPPY_CANVAS_HEIGHT);
-    skyGradient.addColorStop(0, '#87CEEB');
-    skyGradient.addColorStop(1, '#E0F6FF');
-    flappyCtx.fillStyle = skyGradient;
-    flappyCtx.fillRect(0, 0, FLAPPY_CANVAS_WIDTH, FLAPPY_CANVAS_HEIGHT);
+    // Clear canvas
+    flappyCtx.clearRect(0, 0, FLAPPY_CANVAS_WIDTH, FLAPPY_CANVAS_HEIGHT);
 
-    // Draw pipes
+    // Draw pipes with gradients
     pipes.forEach(pipe => {
-        // Get theme color for pipes
-        let pipeColor = '#2ecc71';
-        if (currentTheme === 'hellokitty') {
-            pipeColor = '#FF69B4';
-        } else if (currentTheme === 'ocean') {
-            pipeColor = '#0077be';
-        } else if (currentTheme === 'doraemon') {
-            pipeColor = '#0095DA';
-        } else if (currentTheme === 'light') {
-            pipeColor = '#27ae60';
-        }
+        // Base color handling (kept for themes if needed, but upgrading to gradient)
+        // Create pipe gradient (Left -> Right) to simulate cylinder
+        const gradient = flappyCtx.createLinearGradient(pipe.x, 0, pipe.x + PIPE_WIDTH, 0);
+        gradient.addColorStop(0, '#2ecc71');   // Darker green edge
+        gradient.addColorStop(0.2, '#55efc4'); // Highlight
+        gradient.addColorStop(0.5, '#2ecc71'); // Main green
+        gradient.addColorStop(1, '#27ae60');   // Dark shadow acting as right edge
 
         // Top pipe
-        flappyCtx.fillStyle = pipeColor;
+        flappyCtx.fillStyle = gradient;
         flappyCtx.fillRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
-        flappyCtx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
-        flappyCtx.lineWidth = 3;
+
+        // Border for clear definition
+        flappyCtx.strokeStyle = '#1e8449';
+        flappyCtx.lineWidth = 2;
         flappyCtx.strokeRect(pipe.x, 0, PIPE_WIDTH, pipe.topHeight);
 
-        // Top pipe cap
-        flappyCtx.fillRect(pipe.x - 5, pipe.topHeight - 30, PIPE_WIDTH + 10, 30);
-        flappyCtx.strokeRect(pipe.x - 5, pipe.topHeight - 30, PIPE_WIDTH + 10, 30);
+        // Cap for top pipe (The rim)
+        flappyCtx.fillStyle = gradient; // Reuse gradient or make a cap specific one
+        flappyCtx.fillRect(pipe.x - 4, pipe.topHeight - 24, PIPE_WIDTH + 8, 24);
+        flappyCtx.strokeRect(pipe.x - 4, pipe.topHeight - 24, PIPE_WIDTH + 8, 24);
 
         // Bottom pipe
+        flappyCtx.fillStyle = gradient;
         flappyCtx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, FLAPPY_CANVAS_HEIGHT - pipe.bottomY);
         flappyCtx.strokeRect(pipe.x, pipe.bottomY, PIPE_WIDTH, FLAPPY_CANVAS_HEIGHT - pipe.bottomY);
 
-        // Bottom pipe cap
-        flappyCtx.fillRect(pipe.x - 5, pipe.bottomY, PIPE_WIDTH + 10, 30);
-        flappyCtx.strokeRect(pipe.x - 5, pipe.bottomY, PIPE_WIDTH + 10, 30);
+        // Cap for bottom pipe
+        flappyCtx.fillRect(pipe.x - 4, pipe.bottomY, PIPE_WIDTH + 8, 24);
+        flappyCtx.strokeRect(pipe.x - 4, pipe.bottomY, PIPE_WIDTH + 8, 24);
     });
 
-    // Draw duck
-    const duckX = bird.x;
-    const duckY = bird.y;
-
-    // Duck body (oval shape)
-    const bodyGradient = flappyCtx.createRadialGradient(
-        duckX + 15,
-        duckY + 18,
-        5,
-        duckX + 15,
-        duckY + 18,
-        12
-    );
-    bodyGradient.addColorStop(0, '#FFEB3B');
-    bodyGradient.addColorStop(1, '#FDD835');
-
-    flappyCtx.fillStyle = bodyGradient;
-    flappyCtx.beginPath();
-    flappyCtx.ellipse(duckX + 15, duckY + 18, 12, 10, 0, 0, Math.PI * 2);
-    flappyCtx.fill();
-    flappyCtx.strokeStyle = '#F9A825';
-    flappyCtx.lineWidth = 1.5;
-    flappyCtx.stroke();
-
-    // Duck head (smaller circle)
-    const headGradient = flappyCtx.createRadialGradient(
-        duckX + 20,
-        duckY + 8,
-        3,
-        duckX + 20,
-        duckY + 8,
-        8
-    );
-    headGradient.addColorStop(0, '#FFEB3B');
-    headGradient.addColorStop(1, '#FDD835');
-
-    flappyCtx.fillStyle = headGradient;
-    flappyCtx.beginPath();
-    flappyCtx.arc(duckX + 20, duckY + 8, 8, 0, Math.PI * 2);
-    flappyCtx.fill();
-    flappyCtx.strokeStyle = '#F9A825';
-    flappyCtx.lineWidth = 1.5;
-    flappyCtx.stroke();
-
-    // Duck wing (animated based on velocity)
-    const wingAngle = Math.sin(frameCount * 0.3) * 0.3;
+    // Draw bird/character
     flappyCtx.save();
-    flappyCtx.translate(duckX + 10, duckY + 15);
-    flappyCtx.rotate(wingAngle);
+    flappyCtx.translate(bird.x + BIRD_SIZE / 2, bird.y + BIRD_SIZE / 2);
 
-    flappyCtx.fillStyle = '#F9A825';
-    flappyCtx.beginPath();
-    flappyCtx.ellipse(0, 0, 8, 4, 0, 0, Math.PI * 2);
-    flappyCtx.fill();
-    flappyCtx.strokeStyle = '#F57C00';
-    flappyCtx.lineWidth = 1;
-    flappyCtx.stroke();
+    // Rotation based on velocity
+    const rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (bird.velocity * 0.1)));
+    flappyCtx.rotate(rotation);
+
+    if (selectedCharacter === 'fran') {
+        // Draw Image (Fran)
+        flappyCtx.drawImage(charImage, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
+    } else {
+        // Draw Custom Duck (Canvas Drawing) instead of Emoji
+        const size = BIRD_SIZE;
+        const half = size / 2;
+
+        // 1. Body (Yellow Oval)
+        flappyCtx.fillStyle = '#FFD700'; // Gold/Yellow
+        flappyCtx.beginPath();
+        flappyCtx.ellipse(0, 0, half, half * 0.8, 0, 0, Math.PI * 2);
+        flappyCtx.fill();
+
+        // Body Outline
+        flappyCtx.strokeStyle = '#F39C12';
+        flappyCtx.lineWidth = 2;
+        flappyCtx.stroke();
+
+        // 2. Wing (White/Off-white oval)
+        flappyCtx.fillStyle = '#FFF8DC';
+        flappyCtx.beginPath();
+        // Slightly offset wing
+        flappyCtx.ellipse(-5, 2, 8, 5, -0.2, 0, Math.PI * 2);
+        flappyCtx.fill();
+        flappyCtx.stroke();
+
+        // 3. Eye (Big white circle with pupil)
+        // White part
+        flappyCtx.fillStyle = '#FFFFFF';
+        flappyCtx.beginPath();
+        flappyCtx.arc(6, -6, 8, 0, Math.PI * 2);
+        flappyCtx.fill();
+        flappyCtx.stroke();
+
+        // Pupil (Black)
+        flappyCtx.fillStyle = '#000000';
+        flappyCtx.beginPath();
+        flappyCtx.arc(8, -6, 3, 0, Math.PI * 2);
+        flappyCtx.fill();
+
+        // 4. Beak (Orange)
+        flappyCtx.fillStyle = '#FF8C00'; // Dark Orange
+        flappyCtx.beginPath();
+        flappyCtx.moveTo(10, 2);
+        flappyCtx.lineTo(20, 6); // Pointy end
+        flappyCtx.lineTo(10, 10);
+        // Curve back to head
+        flappyCtx.quadraticCurveTo(8, 6, 10, 2);
+        flappyCtx.fill();
+        flappyCtx.stroke();
+    }
+
     flappyCtx.restore();
 
-    // Duck eye (white with black pupil)
-    flappyCtx.fillStyle = 'white';
-    flappyCtx.beginPath();
-    flappyCtx.arc(duckX + 23, duckY + 6, 3, 0, Math.PI * 2);
-    flappyCtx.fill();
-
-    flappyCtx.fillStyle = 'black';
-    flappyCtx.beginPath();
-    flappyCtx.arc(duckX + 24, duckY + 6, 2, 0, Math.PI * 2);
-    flappyCtx.fill();
-
-    // Duck beak (wider and flatter - orange)
-    flappyCtx.fillStyle = '#FF9800';
-    flappyCtx.beginPath();
-    flappyCtx.moveTo(duckX + 28, duckY + 8);
-    flappyCtx.lineTo(duckX + 35, duckY + 6);
-    flappyCtx.lineTo(duckX + 35, duckY + 10);
-    flappyCtx.closePath();
-    flappyCtx.fill();
-
-    // Beak detail (darker line)
-    flappyCtx.strokeStyle = '#F57C00';
-    flappyCtx.lineWidth = 1;
-    flappyCtx.beginPath();
-    flappyCtx.moveTo(duckX + 28, duckY + 8);
-    flappyCtx.lineTo(duckX + 35, duckY + 8);
-    flappyCtx.stroke();
-
-    // Duck feet (two small orange ovals at bottom)
-    flappyCtx.fillStyle = '#FF9800';
-
-    // Left foot
-    flappyCtx.beginPath();
-    flappyCtx.ellipse(duckX + 12, duckY + 27, 3, 2, 0, 0, Math.PI * 2);
-    flappyCtx.fill();
-
-    // Right foot
-    flappyCtx.beginPath();
-    flappyCtx.ellipse(duckX + 18, duckY + 27, 3, 2, 0, 0, Math.PI * 2);
-    flappyCtx.fill();
+    // Draw score (while playing)
+    if (isFlappyRunning) {
+        flappyCtx.fillStyle = '#ffffff';
+        flappyCtx.font = 'bold 40px Poppins';
+        flappyCtx.strokeStyle = '#000000';
+        flappyCtx.lineWidth = 4;
+        flappyCtx.textAlign = 'center';
+        flappyCtx.strokeText(flappyScore, FLAPPY_CANVAS_WIDTH / 2, 50);
+        flappyCtx.fillText(flappyScore, FLAPPY_CANVAS_WIDTH / 2, 50);
+    }
 }
 
 function updateFlappyScore() {

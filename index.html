@@ -26,7 +26,7 @@
                 <span class="brand-text">Los Duck Games</span>
             </div>
             <div class="navbar-nav">
-                <button class="nav-btn active" data-mode="wheel">
+                <button class="nav-btn" data-mode="wheel">
                     <span class="nav-icon">🎯</span>
                     <span class="nav-text">Ruleta</span>
                 </button>
@@ -36,7 +36,7 @@
                 </button>
                 <button class="nav-btn" data-mode="motivacion">
                     <span class="nav-icon">🐴</span>
-                    <span class="nav-text">Motivación</span>
+                    <span class="nav-text">Muack</span>
                 </button>
             </div>
             <div class="navbar-controls">
@@ -49,7 +49,7 @@
                         </svg>
                     </button>
                     <div class="theme-dropdown" id="themeDropdown">
-                        <button class="theme-option" data-theme="dark">🌙 Oscuro</button>
+                        <button class="theme-option" data-theme="dark">🌑 Simple</button>
                         <button class="theme-option" data-theme="light">☀️ Claro</button>
                         <button class="theme-option" data-theme="hellokitty">🎀 Hello Kitty</button>
                         <button class="theme-option" data-theme="pooh">🍯 Winnie Pooh</button>
@@ -70,8 +70,38 @@
         </div>
     </nav>
 
+    <!-- Main Menu Section -->
+    <section id="menuSection" class="mode-section active">
+        <div class="container">
+            <header class="header">
+                <h1 class="title">Bienvenido a los Duck Games</h1>
+                <p class="subtitle">Selecciona un juego para comenzar</p>
+            </header>
+
+            <main class="main-content">
+                <div class="menu-grid">
+                    <div class="menu-card" data-mode="wheel">
+                        <div class="menu-icon">🎯</div>
+                        <h3>Ruleta</h3>
+                        <p>Deja que la suerte decida por ti</p>
+                    </div>
+                    <div class="menu-card" data-mode="flappy">
+                        <div class="menu-icon">🦆</div>
+                        <h3>Flappy Duck</h3>
+                        <p>Vuela y esquiva tuberías</p>
+                    </div>
+                    <div class="menu-card" data-mode="motivacion">
+                        <div class="menu-icon">🐴</div>
+                        <h3>Muack</h3>
+                        <p>sientete bendecido</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </section>
+
     <!-- Wheel Section -->
-    <section id="wheelSection" class="mode-section active">
+    <section id="wheelSection" class="mode-section">
         <div class="container">
             <header class="header">
                 <h1 class="title">🎯 Ruleta de Decisiones</h1>
@@ -178,8 +208,22 @@
                         <div class="game-overlay" id="flappyOverlay">
                             <div class="overlay-content">
                                 <h2>🦆 Flappy Duck</h2>
-                                <p>Toca la pantalla o presiona ESPACIO para volar</p>
-                                <p class="instructions">Evita las tuberías y consigue la mayor puntuación</p>
+                                <p class="instructions">¡Elige tu personaje y vuela!</p>
+
+                                <div class="character-selection">
+                                    <div class="character-option selected" data-char="duck">
+                                        <div class="char-preview">🦆</div>
+                                        <span>Pato</span>
+                                    </div>
+                                    <div class="character-option" data-char="fran">
+                                        <div class="char-preview img-preview">
+                                            <img src="fran.png" alt="Fran">
+                                        </div>
+                                        <span>Fran Exotik</span>
+                                    </div>
+                                </div>
+
+                                <br>
                                 <button class="btn btn-primary" id="startFlappyBtn">Comenzar Juego</button>
                             </div>
                         </div>
@@ -250,9 +294,9 @@
     <!-- Game Over Modal (Flappy Bird) -->
     <div id="flappyGameOverModal" class="modal">
         <div class="modal-content flappy-gameover-custom">
+            <button class="modal-close-x" id="flappyCloseX">&times;</button>
             <div class="gameover-background"></div>
             <div class="gameover-content">
-                <h1 class="gameover-title">OOHHH NO HAS PERDIDO!!!!</h1>
                 <div class="gameover-stats">
                     <div class="stat-item-gameover">
                         <span class="stat-label">Puntuación:</span>
