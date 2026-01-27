@@ -302,9 +302,18 @@
                         <span class="stat-label">Puntuación:</span>
                         <span class="stat-value" id="flappyFinalScore">0</span>
                     </div>
-                    <div id="rankingGlobalContainer" style="margin-top: 20px; background: rgba(0,0,0,0.5); padding: 10px; border-radius: 10px;">
-                        <h4 style="color: gold;">🏆 TOP 5 MUNDIAL</h4>
-                        <div id="onlineScoresList" style="font-size: 0.9rem; color: white;">Cargando...</div>
+                    <div id="rankingGlobalContainer" class="ranking-container-embedded">
+                        <h4 class="ranking-title">🏆 Top Global</h4>
+
+                        <div id="saveScoreForm" class="save-score-form" style="display: none;">
+                            <input type="text" id="playerNameInput" placeholder="Tu nombre" maxlength="12"
+                                class="player-input">
+                            <button id="saveScoreBtn" class="btn-save">💾</button>
+                        </div>
+
+                        <div id="onlineScoresList" class="ranking-list-embedded">
+                            <div class="ranking-loading-small">Cargando...</div>
+                        </div>
                     </div>
                     <div class="stat-item-gameover" id="flappyNewRecordLabel" style="display: none;">
                         <span class="new-record-badge">🏆 ¡NUEVO RÉCORD!</span>
@@ -321,26 +330,26 @@
 
 
     <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-  import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyD5zwUK7HLkKPZuEnIiNyNuWHhT-4v0ZWw",
-    authDomain: "duck-games-8a02a.firebaseapp.com",
-    projectId: "duck-games-8a02a",
-    storageBucket: "duck-games-8a02a.firebasestorage.app",
-    messagingSenderId: "904799692936",
-    appId: "1:904799692936:web:7207b2941074d97b96d73d",
-    measurementId: "G-J1Q2GHM4T3"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5zwUK7HLkKPZuEnIiNyNuWHhT-4v0ZWw",
+            authDomain: "duck-games-8a02a.firebaseapp.com",
+            projectId: "duck-games-8a02a",
+            storageBucket: "duck-games-8a02a.firebasestorage.app",
+            messagingSenderId: "904799692936",
+            appId: "1:904799692936:web:7207b2941074d97b96d73d",
+            measurementId: "G-J1Q2GHM4T3"
+        };
 
-  const app = initializeApp(firebaseConfig);
-  // Guardamos las referencias en window para usarlas en script.js
-  window.db = getFirestore(app);
-  window.fs = { collection, addDoc, query, orderBy, limit, getDocs };
-</script>
+        const app = initializeApp(firebaseConfig);
+        // Guardamos las referencias en window para usarlas en script.js
+        window.db = getFirestore(app);
+        window.fs = { collection, addDoc, query, orderBy, limit, getDocs };
+    </script>
 
- <script src="script.js"></script>
+    <script src="script.js"></script>
 
 </body>
 

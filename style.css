@@ -598,9 +598,12 @@ body {
     position: relative;
     width: 500px;
     height: 500px;
+    max-width: 90vw;
+    max-height: 90vw;
     display: flex;
     justify-content: center;
     align-items: center;
+    margin: 0 auto;
 }
 
 .wheel-pointer {
@@ -1438,14 +1441,15 @@ body {
     }
 
     .wheel-container {
-        width: 440px;
-        height: 440px;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1/1;
     }
 
     .spin-button {
-        width: 110px;
-        height: 110px;
-        font-size: 1.05rem;
+        width: 80px;
+        height: 80px;
+        font-size: 1rem;
     }
 
     .modal-footer {
@@ -1575,4 +1579,86 @@ body {
     z-index: 2;
     background: rgba(0, 0, 0, 0.8);
     padding: 1.5rem;
+}
+
+/* Embedded Ranking Styles */
+.ranking-container-embedded {
+    margin-top: 1rem;
+    background: rgba(0, 0, 0, 0.4);
+    padding: 1rem;
+    border-radius: 12px;
+    width: 100%;
+}
+
+.ranking-title {
+    color: #FFD700;
+    margin-bottom: 0.8rem;
+    font-size: 1.1rem;
+    text-align: center;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.save-score-form {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.player-input {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    padding: 0.5rem 0.8rem;
+    border-radius: 8px;
+    color: white;
+    width: 60%;
+    font-family: inherit;
+}
+
+.player-input:focus {
+    outline: none;
+    border-color: #FFD700;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-save {
+    background: #FFD700;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-size: 1.2rem;
+    transition: transform 0.2s;
+}
+
+.btn-save:hover {
+    transform: scale(1.05);
+    background: #FFC107;
+}
+
+.ranking-list-embedded {
+    max-height: 120px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+.ranking-row-small {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.ranking-row-small:last-child {
+    border-bottom: none;
+}
+
+.ranking-row-small span:first-child {
+    font-weight: 500;
+    color: #eaeaea;
+}
+
+.ranking-row-small span:last-child {
+    font-weight: 700;
+    color: #FFD700;
 }

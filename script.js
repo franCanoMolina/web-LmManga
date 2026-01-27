@@ -734,13 +734,23 @@ function flappyGameOver() {
         flappyGameOverModal.classList.add('active');
         console.log('Modal classes:', flappyGameOverModal.classList);
 
-        if (flappyScore > 0) {
-            setTimeout(() => {
-                const nombre = prompt("¡Partidaza! Introduce tu nombre para el ranking global:");
-                if (nombre) guardarPuntuacionGlobal(nombre, flappyScore);
-            }, 500);
+        // Reset input form
+        const saveForm = document.getElementById('saveScoreForm');
+        const input = document.getElementById('playerNameInput');
+        const btn = document.getElementById('saveScoreBtn');
+
+        if (saveForm && flappyScore > 0) {
+            saveForm.style.display = 'flex';
+            if (input) input.value = '';
+            if (btn) { btn.innerHTML = '💾'; btn.disabled = false; }
+            setTimeout(() => input && input.focus(), 100);
+        } else if (saveForm) {
+            saveForm.style.display = 'none';
         }
-        
+
+        // Load ranking immediately (non-blocking)
+        actualizarRankingUI();
+
     } else {
         console.error('❌ Modal element not found!');
     }
@@ -1033,23 +1043,45 @@ function playFlappyScoreSound() {
 }
 
 // Función para enviar puntos a Firebase
-async function guardarPuntuacionGlobal(nombre, puntos) {
+async function guardarPuntuacionGlobal() {
+    const inputObj = document.getElementById('playerNameInput');
+    const nombre = inputObj.value.trim();
+    const puntos = parseInt(document.getElementById('flappyFinalScore').textContent);
+    const saveForm = document.getElementById('saveScoreForm');
+
     if (!nombre || puntos <= 0) return;
+
+    // Feedback visual inmediato
+    const btn = document.getElementById('saveScoreBtn');
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳';
+    btn.disabled = true;
+
     try {
         await window.fs.addDoc(window.fs.collection(window.db, "ranking"), {
             jugador: nombre,
             puntos: puntos,
             fecha: new Date()
         });
-        actualizarRankingUI(); // Refrescar lista
+
+        // Ocultar formulario y actualizar lista
+        saveForm.style.display = 'none';
+        actualizarRankingUI();
     } catch (e) {
         console.error("Error al guardar:", e);
+        alert("No se pudo guardar. Verifica tu conexión.");
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 }
 
 // Función para leer el Top 5
 async function actualizarRankingUI() {
     const contenedor = document.getElementById('onlineScoresList');
+    if (!contenedor) return;
+
+    contenedor.innerHTML = '<div class="ranking-loading-small">Cargando...</div>';
+
     try {
         const q = window.fs.query(
             window.fs.collection(window.db, "ranking"),
@@ -1057,18 +1089,28 @@ async function actualizarRankingUI() {
             window.fs.limit(5)
         );
         const querySnapshot = await window.fs.getDocs(q);
+
         let html = "";
         querySnapshot.forEach((doc) => {
             const data = doc.data();
-            html += `<div style="display:flex; justify-content: space-between; border-bottom: 1px solid #333;">
-                        <span>${data.jugador}</span>
+            html += `<div class="ranking-row-small">
+                        <span>${data.jugador.substring(0, 10)}</span>
                         <span>${data.puntos}</span>
                      </div>`;
         });
-        contenedor.innerHTML = html || "¡Sin récords!";
+
+        contenedor.innerHTML = html || '<div style="text-align:center; padding:10px;">¡Sé el primero!</div>';
     } catch (e) {
-        contenedor.innerHTML = "Error al cargar ranking";
+        console.warn("Firebase error:", e);
+        contenedor.innerHTML = '<div style="text-align:center; color: #ff6b6b; padding:10px;">Ranking no disponible</div>';
     }
 }
+
+// Vinculamos el botón de guardar
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('saveScoreBtn');
+    if (btn) btn.addEventListener('click', guardarPuntuacionGlobal);
+});
+
 // ===== START APPLICATION =====
 init();
