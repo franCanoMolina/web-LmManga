@@ -733,6 +733,14 @@ function flappyGameOver() {
         console.log('Showing modal...');
         flappyGameOverModal.classList.add('active');
         console.log('Modal classes:', flappyGameOverModal.classList);
+
+        if (flappyScore > 0) {
+            setTimeout(() => {
+                const nombre = prompt("¡Partidaza! Introduce tu nombre para el ranking global:");
+                if (nombre) guardarPuntuacionGlobal(nombre, flappyScore);
+            }, 500);
+        }
+        
     } else {
         console.error('❌ Modal element not found!');
     }
@@ -1024,5 +1032,43 @@ function playFlappyScoreSound() {
     oscillator.stop(audioContext.currentTime + 0.2);
 }
 
+// Función para enviar puntos a Firebase
+async function guardarPuntuacionGlobal(nombre, puntos) {
+    if (!nombre || puntos <= 0) return;
+    try {
+        await window.fs.addDoc(window.fs.collection(window.db, "ranking"), {
+            jugador: nombre,
+            puntos: puntos,
+            fecha: new Date()
+        });
+        actualizarRankingUI(); // Refrescar lista
+    } catch (e) {
+        console.error("Error al guardar:", e);
+    }
+}
+
+// Función para leer el Top 5
+async function actualizarRankingUI() {
+    const contenedor = document.getElementById('onlineScoresList');
+    try {
+        const q = window.fs.query(
+            window.fs.collection(window.db, "ranking"),
+            window.fs.orderBy("puntos", "desc"),
+            window.fs.limit(5)
+        );
+        const querySnapshot = await window.fs.getDocs(q);
+        let html = "";
+        querySnapshot.forEach((doc) => {
+            const data = doc.data();
+            html += `<div style="display:flex; justify-content: space-between; border-bottom: 1px solid #333;">
+                        <span>${data.jugador}</span>
+                        <span>${data.puntos}</span>
+                     </div>`;
+        });
+        contenedor.innerHTML = html || "¡Sin récords!";
+    } catch (e) {
+        contenedor.innerHTML = "Error al cargar ranking";
+    }
+}
 // ===== START APPLICATION =====
 init();
