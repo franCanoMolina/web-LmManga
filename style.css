@@ -1008,7 +1008,7 @@ body {
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
     body {
         padding-top: 70px;
     }
@@ -1047,8 +1047,8 @@ body {
     }
 
     .wheel-container {
-        width: 450px;
-        height: 450px;
+        width: 460px;
+        height: 460px;
     }
 
     .spin-button {
@@ -1079,7 +1079,7 @@ body {
     }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 600px) {
     .add-option-form {
         flex-direction: column;
     }
@@ -1089,8 +1089,8 @@ body {
     }
 
     .wheel-container {
-        width: 420px;
-        height: 420px;
+        width: 440px;
+        height: 440px;
     }
 
     .spin-button {
