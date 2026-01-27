@@ -1328,6 +1328,52 @@ body {
         display: none;
     }
 
+    @media (max-width: 480px) {
+        .overlay-content {
+            padding: 1rem;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .overlay-content h2 {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .overlay-content p {
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .character-selection {
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .character-option {
+            padding: 0.5rem;
+            min-width: 80px;
+        }
+
+        .char-preview {
+            width: 45px;
+            height: 45px;
+            font-size: 2rem;
+        }
+
+        .btn {
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+        }
+
+        .flappy-gameover-custom {
+            width: 90%;
+            height: auto;
+            min-height: 300px;
+            padding: 1rem !important;
+        }
+    }
+
     .nav-btn {
         padding: 0.75rem;
     }
