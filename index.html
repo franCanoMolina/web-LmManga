@@ -38,6 +38,10 @@
                     <span class="nav-icon">🐴</span>
                     <span class="nav-text">Muack</span>
                 </button>
+                <button class="nav-btn" data-mode="clicker">
+                    <span class="nav-icon">💰</span>
+                    <span class="nav-text">Golden Duck</span>
+                </button>
             </div>
             <div class="navbar-controls">
                 <div class="theme-selector">
@@ -94,6 +98,11 @@
                         <div class="menu-icon">🐴</div>
                         <h3>Muack</h3>
                         <p>sientete bendecido</p>
+                    </div>
+                    <div class="menu-card" data-mode="clicker">
+                        <div class="menu-icon">💰</div>
+                        <h3>Golden Duck</h3>
+                        <p>Clicks Globales</p>
                     </div>
                 </div>
             </main>
@@ -271,6 +280,42 @@
         </div>
     </section>
 
+    <!-- Golden Duck Clicker Section -->
+    <section id="clickerSection" class="mode-section">
+        <div class="container" style="text-align: center;">
+            <header class="header">
+                <h1 class="title">💰 The Golden Duck</h1>
+                <p class="subtitle">¡Haz click y suma al contador mundial!</p>
+            </header>
+
+            <main class="clicker-content">
+                <div class="global-counter-panel">
+                    <h3>CLICKS GLOBALES</h3>
+                    <div id="globalClickCount" class="global-counter">Cargando...</div>
+                </div>
+
+                <div class="golden-duck-container">
+                    <div id="goldenDuck" class="golden-duck">🦆</div>
+                    <img id="goldenApple" src="golden-apple.png" alt="Golden Apple" class="golden-duck-img"
+                        style="display: none;">
+                    <img id="goldenGoat" src="goat.png" alt="Golden Goat" class="golden-duck-img"
+                        style="display: none;">
+                    <img id="goldenPrincipito" src="principito.png" alt="Principito" class="golden-duck-img"
+                        style="display: none;">
+                </div>
+
+                <div class="skin-selector">
+                    <button class="skin-btn active" data-skin="duck">🦆</button>
+                    <button class="skin-btn" data-skin="apple">🍎</button>
+                    <button class="skin-btn" data-skin="goat">🐐</button>
+                    <button class="skin-btn" data-skin="principito">🤴</button>
+                </div>
+
+                <p class="clicker-hint">¡Todos los usuarios suman al mismo contador!</p>
+            </main>
+        </div>
+    </section>
+
     <!-- Winner Modal (Wheel) -->
     <div id="winnerModal" class="modal">
         <div class="modal-content">
@@ -331,7 +376,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, doc, onSnapshot, updateDoc, increment, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD5zwUK7HLkKPZuEnIiNyNuWHhT-4v0ZWw",
@@ -346,7 +391,7 @@
         const app = initializeApp(firebaseConfig);
         // Guardamos las referencias en window para usarlas en script.js
         window.db = getFirestore(app);
-        window.fs = { collection, addDoc, query, orderBy, limit, getDocs };
+        window.fs = { collection, addDoc, query, orderBy, limit, getDocs, doc, onSnapshot, updateDoc, increment, setDoc, getDoc };
     </script>
 
     <script src="script.js"></script>

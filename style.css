@@ -1667,3 +1667,154 @@ body {
     font-weight: 700;
     color: #FFD700;
 }
+
+/* Golden Duck Clicker Styles */
+.clicker-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2rem;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.global-counter-panel {
+    background: rgba(255, 215, 0, 0.1);
+    border: 2px solid #FFD700;
+    border-radius: 16px;
+    padding: 1.5rem 3rem;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+    text-align: center;
+}
+
+.global-counter-panel h3 {
+    color: #FFD700;
+    font-size: 1rem;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+}
+
+.global-counter {
+    font-size: 3rem;
+    font-weight: 800;
+    color: white;
+    text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    font-variant-numeric: tabular-nums;
+}
+
+.golden-duck-container {
+    position: relative;
+    padding: 2rem;
+}
+
+.golden-duck {
+    font-size: 8rem;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+    animation: duckfloat 3s ease-in-out infinite;
+}
+
+.golden-duck:active {
+    transform: scale(0.9) rotate(-5deg);
+}
+
+.golden-duck:hover {
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+    transform: scale(1.05);
+}
+
+.clicker-hint {
+    color: #aaa;
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+@keyframes duckfloat {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-15px);
+    }
+}
+
+/* Particle Animation */
+.click-particle {
+    position: absolute;
+    color: #FFD700;
+    font-weight: bold;
+    font-size: 1.5rem;
+    pointer-events: none;
+    animation: floatUp 1s ease-out forwards;
+    z-index: 100;
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-50px) scale(1.5);
+        opacity: 0;
+    }
+}
+
+/* Skin Selector */
+.skin-selector {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
+    border-radius: 50px;
+}
+
+.skin-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 50%;
+    transition: transform 0.2s, background 0.2s;
+    opacity: 0.6;
+}
+
+.skin-btn:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.1);
+    opacity: 1;
+}
+
+.skin-btn.active {
+    opacity: 1;
+    background: rgba(255, 215, 0, 0.2);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.golden-duck-img {
+    width: 200px;
+    height: 200px;
+    object-fit: contain;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+    animation: duckfloat 3s ease-in-out infinite;
+}
+
+.golden-duck-img:active {
+    transform: scale(0.9) rotate(-5deg);
+}
+
+.golden-duck-img:hover {
+    filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
+    transform: scale(1.05);
+}

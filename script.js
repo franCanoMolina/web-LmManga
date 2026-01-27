@@ -247,11 +247,14 @@ function attachEventListeners() {
         });
     });
 
-    // Menu cards
-    document.querySelectorAll('.menu-card').forEach(card => {
+    // Menu cards listeners
+    const cards = document.querySelectorAll('.menu-card');
+    console.log("Found menu cards:", cards.length); // Debug
+    cards.forEach(card => {
         card.addEventListener('click', () => {
             const mode = card.dataset.mode;
-            switchMode(mode);
+            console.log("Card clicked:", mode); // Debug
+            if (mode) switchMode(mode);
         });
     });
 }
@@ -631,31 +634,38 @@ function initNavigation() {
 }
 
 function switchMode(mode) {
-    // Update nav buttons
-    navBtns.forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.mode === mode);
-    });
+    console.log("Switching to mode:", mode); // Debug log
 
-    // Update sections
-    // Update sections
+    // Hide all sections
     modeSections.forEach(section => {
-        const isActive = section.id === `${mode}Section`;
-        section.classList.toggle('active', isActive);
-
-        // If entering menu, ensure animation replays
-        if (isActive && mode === 'menu') {
-            const content = section.querySelector('.main-content');
-            if (content) {
-                content.style.animation = 'none';
-                content.offsetHeight; /* trigger reflow */
-                content.style.animation = null;
-            }
+        section.classList.remove('active');
+        // Check if this section matches the mode
+        if (section.id === `${mode}Section`) {
+            section.classList.add('active');
+        } else if (mode === 'menu' && section.id === 'menuSection') {
+            section.classList.add('active');
         }
     });
 
-    // Stop Flappy Bird if switching away
+    // Update nav buttons
+    navBtns.forEach(btn => {
+        if (btn.dataset.mode === mode) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+
+    // Valid modes check (optional, but good for safety)
+    const validModes = ['wheel', 'flappy', 'motivacion', 'clicker', 'menu'];
+    if (!validModes.includes(mode)) {
+        console.warn("Unknown mode:", mode);
+        return;
+    }
+
+    // Pause flappy if leaving flappy section
     if (mode !== 'flappy' && isFlappyRunning) {
-        stopFlappyGame();
+        pauseFlappyGame();
     }
 }
 
@@ -1113,4 +1123,132 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ===== START APPLICATION =====
-init();
+window.addEventListener('DOMContentLoaded', () => {
+    init();
+    // Retry initialization if Firebase isn't ready immediately
+    if (window.fs && window.db) {
+        initClickerGame();
+    } else {
+        console.warn("Firebase not ready, retrying in 500ms...");
+        setTimeout(initClickerGame, 500);
+    }
+});
+
+// ===== GOLDEN DUCK CLICKER LOGIC =====
+function initClickerGame() {
+    const duck = document.getElementById('goldenDuck');
+    const apple = document.getElementById('goldenApple');
+    const goat = document.getElementById('goldenGoat');
+    const principito = document.getElementById('goldenPrincipito');
+    const counterDisplay = document.getElementById('globalClickCount');
+    const skinBtns = document.querySelectorAll('.skin-btn');
+
+    // We can click any active item
+    const clickables = [duck, apple, goat, principito];
+
+    if (!duck || !counterDisplay) return;
+
+    // Skin switching logic
+    skinBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            // Visual toggle
+            skinBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            const mode = btn.dataset.skin;
+            duck.style.display = 'none';
+            apple.style.display = 'none';
+            if (goat) goat.style.display = 'none';
+            if (principito) principito.style.display = 'none';
+
+            if (mode === 'duck') {
+                duck.style.display = 'block';
+            } else if (mode === 'apple') {
+                apple.style.display = 'block';
+            } else if (mode === 'goat' && goat) {
+                goat.style.display = 'block';
+            } else if (mode === 'principito' && principito) {
+                principito.style.display = 'block';
+            }
+        });
+    });
+
+    // 1. Listen for real-time updates
+    if (window.fs && window.db) {
+        const docRef = window.fs.doc(window.db, "clicks", "global");
+
+        // Real-time listener
+        window.fs.onSnapshot(docRef, (doc) => {
+            if (doc.exists()) {
+                const data = doc.data();
+                counterDisplay.textContent = data.count.toLocaleString();
+                // Add a small "bump" effect to counter
+                counterDisplay.style.transform = "scale(1.1)";
+                setTimeout(() => counterDisplay.style.transform = "scale(1)", 100);
+            } else {
+                // If doc doesn't exist, create it locally first for UI
+                counterDisplay.textContent = "0";
+            }
+        });
+    }
+
+    // 2. Click Handler
+    const handleClick = async (e) => {
+        // Visuals
+        createParticle(e.clientX, e.clientY);
+        playQuackSound();
+
+        // Database Update
+        if (window.fs && window.db) {
+            const docRef = window.fs.doc(window.db, "clicks", "global");
+            try {
+                await window.fs.updateDoc(docRef, {
+                    count: window.fs.increment(1)
+                }).catch(async (error) => {
+                    if (error.code === 'not-found') {
+                        await window.fs.setDoc(docRef, { count: 1 });
+                    }
+                });
+            } catch (err) {
+                console.error("Click error:", err);
+            }
+        }
+    };
+
+    // Attach listeners to both items
+    clickables.forEach(item => {
+        if (item) item.addEventListener('pointerdown', handleClick);
+    });
+}
+
+function createParticle(x, y) {
+    const particle = document.createElement('div');
+    particle.textContent = "+1";
+    particle.className = "click-particle";
+    particle.style.left = `${x}px`;
+    particle.style.top = `${y}px`;
+    document.body.appendChild(particle);
+
+    setTimeout(() => particle.remove(), 1000);
+}
+
+function playQuackSound() {
+    if (!audioContext || !soundEnabled) return;
+
+    // Simple synthesized "quack" / click sound
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(600, audioContext.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(300, audioContext.currentTime + 0.1);
+
+    gain.gain.setValueAtTime(0.1, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+    osc.start();
+    osc.stop(audioContext.currentTime + 0.1);
+}
