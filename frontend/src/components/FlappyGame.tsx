@@ -1,0 +1,466 @@
+import React, { useRef, useEffect, useState, useCallback } from 'react';
+import axios from 'axios';
+
+// Constants
+const CANVAS_WIDTH = 400;
+const CANVAS_HEIGHT = 600;
+const BIRD_SIZE = 30;
+const PIPE_WIDTH = 60;
+const PIPE_GAP = 150;
+const GRAVITY = 0.5;
+const JUMP_STRENGTH = -8;
+const PIPE_SPEED = 3;
+
+interface Bird {
+    x: number;
+    y: number;
+    velocity: number;
+}
+
+interface Pipe {
+    x: number;
+    topHeight: number;
+    bottomY: number;
+    passed: boolean;
+}
+
+const FlappyGame: React.FC = () => {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start');
+    const [score, setScore] = useState(0);
+    const [highScore, setHighScore] = useState(0);
+    const [selectedChar, setSelectedChar] = useState<'duck' | 'fran'>('duck');
+
+    // Leaderboard State
+    const [leaderboard, setLeaderboard] = useState<{ name: string, score: number }[]>([]);
+    const [playerName, setPlayerName] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // Mutable Game State
+    const gameStateRef = useRef<'start' | 'playing' | 'gameover'>('start');
+    const birdRef = useRef<Bird>({ x: 100, y: 300, velocity: 0 });
+    const pipesRef = useRef<Pipe[]>([]);
+    const frameRef = useRef<number>(0);
+    const scoreRef = useRef(0);
+    const franImgRef = useRef<HTMLImageElement>(new Image());
+
+    useEffect(() => {
+        franImgRef.current.src = '/fran.png';
+        const savedHigh = localStorage.getItem('flappyHighScore');
+        if (savedHigh) setHighScore(parseInt(savedHigh));
+
+        fetchLeaderboard();
+
+        // Start LOOP immediately for floating animation
+        gameStateRef.current = 'start';
+        loop();
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space') {
+                e.preventDefault();
+                jump();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
+
+    const fetchLeaderboard = async () => {
+        try {
+            const res = await axios.get('http://localhost:8000/leaderboard');
+            setLeaderboard(res.data);
+        } catch (err) {
+            console.error("Error fetching leaderboard", err);
+        }
+    };
+
+    const submitScore = async () => {
+        if (!playerName.trim() || score <= 0) return;
+        setIsSubmitting(true);
+        try {
+            await axios.post('http://localhost:8000/leaderboard', {
+                name: playerName,
+                score: score
+            });
+            await fetchLeaderboard();
+            setPlayerName(''); // Clear input but keep game over screen until restart
+        } catch (err) {
+            console.error("Error submitting score", err);
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    // Start the game (Transition from Idle -> Playing)
+    const startGame = () => {
+        setGameState('playing');
+        gameStateRef.current = 'playing';
+        birdRef.current.velocity = JUMP_STRENGTH;
+    };
+
+    // Reset to Idle State (Levitating)
+    const resetToStart = () => {
+        birdRef.current = { x: 100, y: 300, velocity: 0 };
+        pipesRef.current = [];
+        addPipe(CANVAS_WIDTH);
+        addPipe(CANVAS_WIDTH + 250);
+        scoreRef.current = 0;
+        setScore(0);
+
+        setGameState('start');
+        gameStateRef.current = 'start';
+
+        if (frameRef.current) cancelAnimationFrame(frameRef.current);
+        loop();
+    };
+
+    const addPipe = (x: number) => {
+        const minHeight = 100;
+        const maxHeight = CANVAS_HEIGHT - PIPE_GAP - minHeight;
+        const topHeight = Math.floor(Math.random() * (maxHeight - minHeight)) + minHeight;
+        pipesRef.current.push({
+            x,
+            topHeight,
+            bottomY: topHeight + PIPE_GAP,
+            passed: false
+        });
+    };
+
+    const jump = useCallback(() => {
+        if (gameStateRef.current === 'playing') {
+            birdRef.current.velocity = JUMP_STRENGTH;
+        } else if (gameStateRef.current === 'start') {
+            startGame();
+        }
+    }, []);
+
+    const loop = () => {
+        // Run loop for both playing and start (for animation)
+        if (gameStateRef.current !== 'playing' && gameStateRef.current !== 'start') return;
+
+        updatePhysics();
+        draw();
+
+        if (gameStateRef.current === 'playing' && checkCollision()) {
+            endGame();
+        } else {
+            frameRef.current = requestAnimationFrame(loop);
+        }
+    };
+
+    const updatePhysics = () => {
+        const bird = birdRef.current;
+
+        if (gameStateRef.current === 'start') {
+            // Levitating Animation
+            const time = Date.now() / 300;
+            bird.y = 300 + Math.sin(time) * 10;
+            bird.velocity = 0; // Reset velocity
+            return; // Skip pipes and gravity
+        }
+
+        bird.velocity += GRAVITY;
+        bird.y += bird.velocity;
+
+        // Pipes
+        for (let i = pipesRef.current.length - 1; i >= 0; i--) {
+            const pipe = pipesRef.current[i];
+            pipe.x -= PIPE_SPEED;
+
+            if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
+                pipe.passed = true;
+                scoreRef.current += 1;
+                setScore(scoreRef.current);
+            }
+
+            if (pipe.x < -PIPE_WIDTH) {
+                pipesRef.current.splice(i, 1);
+            }
+        }
+
+        if (pipesRef.current.length > 0 && pipesRef.current[pipesRef.current.length - 1].x < CANVAS_WIDTH - 250) {
+            addPipe(CANVAS_WIDTH);
+        }
+    };
+
+    const checkCollision = () => {
+        const bird = birdRef.current;
+        if (bird.y + BIRD_SIZE >= CANVAS_HEIGHT || bird.y <= 0) return true;
+
+        const bx = bird.x + 5;
+        const by = bird.y + 5;
+        const bw = BIRD_SIZE - 10;
+        const bh = BIRD_SIZE - 10;
+
+        for (const pipe of pipesRef.current) {
+            if (bx < pipe.x + PIPE_WIDTH && bx + bw > pipe.x &&
+                (by < pipe.topHeight || by + bh > pipe.bottomY)) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    const endGame = () => {
+        gameStateRef.current = 'gameover';
+        setGameState('gameover');
+        cancelAnimationFrame(frameRef.current);
+
+        if (scoreRef.current > highScore) {
+            setHighScore(scoreRef.current);
+            localStorage.setItem('flappyHighScore', scoreRef.current.toString());
+        }
+        draw();
+        // Auto-refresh leaderboard
+        fetchLeaderboard();
+    };
+
+    const draw = () => {
+        const canvas = canvasRef.current;
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
+
+        // Pipes
+        pipesRef.current.forEach(pipe => {
+            // Gradient for 3D effect (Mario Style Green)
+            const gradient = ctx.createLinearGradient(pipe.x, 0, pipe.x + PIPE_WIDTH, 0);
+            gradient.addColorStop(0, '#0d570d');   // Dark edge
+            gradient.addColorStop(0.1, '#2ba82b'); // Main color
+            gradient.addColorStop(0.4, '#89e089'); // Highlight
+            gradient.addColorStop(0.8, '#2ba82b'); // Main color
+            gradient.addColorStop(1, '#0d570d');   // Dark edge
+
+            ctx.fillStyle = gradient;
+            ctx.strokeStyle = '#003300';
+            ctx.lineWidth = 2;
+
+            const capHeight = 24;
+            const inset = 4; // Body is slightly narrower than cap
+
+            // --- Top Pipe ---
+            // Body (from top to cap)
+            ctx.fillRect(pipe.x + inset, 0, PIPE_WIDTH - (inset * 2), pipe.topHeight - capHeight);
+            ctx.strokeRect(pipe.x + inset, -2, PIPE_WIDTH - (inset * 2), pipe.topHeight - capHeight + 2);
+
+            // Cap (Rim)
+            ctx.fillRect(pipe.x, pipe.topHeight - capHeight, PIPE_WIDTH, capHeight);
+            ctx.strokeRect(pipe.x, pipe.topHeight - capHeight, PIPE_WIDTH, capHeight);
+
+            // --- Bottom Pipe ---
+            // Cap (Rim)
+            ctx.fillRect(pipe.x, pipe.bottomY, PIPE_WIDTH, capHeight);
+            ctx.strokeRect(pipe.x, pipe.bottomY, PIPE_WIDTH, capHeight);
+
+            // Body (from cap to bottom)
+            ctx.fillRect(pipe.x + inset, pipe.bottomY + capHeight, PIPE_WIDTH - (inset * 2), CANVAS_HEIGHT - (pipe.bottomY + capHeight));
+            ctx.strokeRect(pipe.x + inset, pipe.bottomY + capHeight, PIPE_WIDTH - (inset * 2), CANVAS_HEIGHT - (pipe.bottomY + capHeight) + 2);
+        });
+
+        // Bird
+        const bird = birdRef.current;
+        ctx.save();
+        ctx.translate(bird.x + BIRD_SIZE / 2, bird.y + BIRD_SIZE / 2);
+
+        // Simple rotation based on slight movement if floating
+        let rotation = 0;
+        if (gameStateRef.current === 'start') {
+            rotation = Math.sin(Date.now() / 300) * 0.1; // Gentle sway
+        } else {
+            rotation = Math.min(Math.PI / 4, Math.max(-Math.PI / 4, (bird.velocity * 0.1)));
+        }
+        ctx.rotate(rotation);
+
+        if (selectedChar === 'fran') {
+            ctx.drawImage(franImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
+        } else {
+            ctx.fillStyle = '#FFD700';
+            ctx.beginPath();
+            ctx.arc(0, 0, BIRD_SIZE / 2, 0, Math.PI * 2);
+            ctx.fill();
+            // Beak
+            ctx.fillStyle = 'orange';
+            ctx.beginPath();
+            ctx.moveTo(5, -5);
+            ctx.lineTo(15, 0);
+            ctx.lineTo(5, 5);
+            ctx.fill();
+            // Eye
+            ctx.fillStyle = 'black';
+            ctx.beginPath();
+            ctx.arc(5, -5, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+
+        // Floor
+        ctx.fillStyle = '#D35400';
+        ctx.fillRect(0, CANVAS_HEIGHT - 10, CANVAS_WIDTH, 10);
+    };
+
+    return (
+        <section className="mode-section active">
+            <div className="container" style={{ textAlign: 'center' }}>
+                <header className="header" style={{ marginBottom: '1rem' }}>
+                    <h1 className="title">🦆 Flappy Duck</h1>
+                    <p className="subtitle">Puntuación: {score} | Récord: {highScore}</p>
+                </header>
+
+                <div className="game-container" style={{
+                    display: 'flex',
+                    gap: '2rem',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    flexDirection: 'row'
+                }}>
+
+                    {/* Game Canvas */}
+                    <div className="canvas-wrapper" style={{
+                        position: 'relative',
+                        display: 'inline-block',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
+                        borderRadius: '12px'
+                    }}>
+                        <canvas
+                            ref={canvasRef}
+                            width={CANVAS_WIDTH}
+                            height={CANVAS_HEIGHT}
+                            onClick={jump}
+                            style={{
+                                borderRadius: '12px',
+                                background: '#70c5ce',
+                                cursor: 'pointer',
+                                maxWidth: '100%',
+                                height: 'auto'
+                            }}
+                        ></canvas>
+
+                        {gameState === 'start' && (
+                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', borderRadius: '12px' }}>
+                                <h2 style={{ color: 'white', marginBottom: '1rem' }}>Flappy Duck</h2>
+                                <p style={{ color: '#ddd', marginBottom: '1rem' }}>Elige personaje:</p>
+                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                                    <button className={`btn ${selectedChar === 'duck' ? 'btn-primary' : 'btn-secondary'}`} onClick={(e) => { e.stopPropagation(); setSelectedChar('duck'); }} style={{ width: 'auto' }}>🦆 Pato</button>
+                                    <button className={`btn ${selectedChar === 'fran' ? 'btn-primary' : 'btn-secondary'}`} onClick={(e) => { e.stopPropagation(); setSelectedChar('fran'); }} style={{ width: 'auto' }}>🧔 Fran</button>
+                                </div>
+                                <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); startGame(); }}>TAP o ESPACIO</button>
+                            </div>
+                        )}
+
+                        {gameState === 'gameover' && (
+                            <div style={{
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                                width: '100%',
+                                height: '100%',
+                                background: 'rgba(0,0,0,0.85)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexDirection: 'column',
+                                borderRadius: '12px',
+                                padding: '1rem',
+                                zIndex: 10
+                            }}>
+                                <h2 style={{ color: '#ff5252', fontSize: '2rem' }}>GAME OVER</h2>
+                                <p style={{ color: 'white', fontSize: '1.5rem', marginBottom: '1rem' }}>Puntos: {score}</p>
+
+                                <div className="save-score-form" style={{
+                                    marginBottom: '1rem',
+                                    width: '100%',
+                                    maxWidth: '250px',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '15px'
+                                }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Escribe Tu Nombre"
+                                        value={playerName}
+                                        onChange={(e) => setPlayerName(e.target.value)}
+                                        className="option-input"
+                                        style={{
+                                            width: '100%',
+                                            textAlign: 'center',
+                                            color: 'black',
+                                            background: 'white',
+                                            padding: '12px',
+                                            fontSize: '1rem',
+                                            borderRadius: '8px',
+                                            border: '2px solid transparent',
+                                            marginBottom: '0',
+                                            display: 'block'
+                                        }}
+                                        maxLength={15}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={(e) => { e.stopPropagation(); submitScore(); }}
+                                        disabled={isSubmitting || score === 0 || !playerName}
+                                        style={{
+                                            width: '100%',
+                                            marginTop: '0',
+                                            padding: '12px',
+                                            fontSize: '1rem'
+                                        }}
+                                    >
+                                        {isSubmitting ? 'Guardando...' : '💾 Guardar Puntos'}
+                                    </button>
+                                </div>
+
+                                <button className="btn btn-secondary" onClick={(e) => { e.stopPropagation(); resetToStart(); }} style={{ width: 'auto', marginTop: '1rem' }}>Jugar de Nuevo</button>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Leaderboard Panel */}
+                    <div className="leaderboard-panel" style={{
+                        background: 'var(--card-bg)',
+                        padding: '1.5rem',
+                        borderRadius: '16px',
+                        border: '1px solid var(--card-border)',
+                        width: '300px',
+                        textAlign: 'left',
+                        boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
+                        maxHeight: '600px',
+                        overflowY: 'auto'
+                    }}>
+                        <h3 style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#FFD700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <span>🏆</span> Top 5 Ranking
+                        </h3>
+                        {leaderboard.length === 0 ? (
+                            <p style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center' }}>Aún no hay récords</p>
+                        ) : (
+                            <ul style={{ listStyle: 'none', padding: 0 }}>
+                                {leaderboard.map((entry, idx) => (
+                                    <li key={idx} style={{
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        padding: '0.75rem',
+                                        background: idx === 0 ? 'rgba(255, 215, 0, 0.15)' : 'rgba(255,255,255,0.03)',
+                                        borderRadius: '8px',
+                                        marginBottom: '0.5rem',
+                                        border: idx === 0 ? '1px solid rgba(255, 215, 0, 0.3)' : '1px solid transparent'
+                                    }}>
+                                        <span style={{ fontWeight: 600 }}>
+                                            {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`} {entry.name}
+                                        </span>
+                                        <span style={{ color: '#FFD700', fontWeight: 'bold' }}>{entry.score}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    );
+};
+
+export default FlappyGame;
