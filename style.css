@@ -1,26 +1,36 @@
 /* ===== CSS VARIABLES & RESET ===== */
 :root {
-    /* Simple Theme */
-    --primary-gradient: #3b82f6;
-    /* Solid Blue */
-    --secondary-gradient: #64748b;
-    /* Solid Slate */
-    --success-gradient: #22c55e;
-    /* Solid Green */
-    --dark-bg: #18191a;
-    /* Neutral Dark */
-    --card-bg: #242526;
-    /* Slightly lighter card */
-    --card-border: #3a3b3c;
-    --text-primary: #e4e6eb;
-    --text-secondary: #b0b3b8;
-    --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.2);
-    --shadow-md: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --transition-smooth: all 0.2s ease;
-    --border-radius: 8px;
-    /* Sharper corners */
-    --bg-gradient-1: transparent;
-    --bg-gradient-2: transparent;
+    /* Premium Theme Base */
+    --primary-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    /* Indigo to Purple */
+    --secondary-gradient: linear-gradient(135deg, #3b82f6 0%, #2dd4bf 100%);
+    /* Blue to Teal */
+    --success-gradient: linear-gradient(135deg, #10b981 0%, #34d399 100%);
+    /* Emerald */
+    --danger-gradient: linear-gradient(135deg, #ef4444 0%, #f43f5e 100%);
+    /* Red to Rose */
+
+    --dark-bg: #0f172a;
+    /* Slate 900 */
+    --card-bg: rgba(30, 41, 59, 0.7);
+    /* Slate 800 with opacity */
+    --card-border: rgba(255, 255, 255, 0.1);
+
+    --text-primary: #f8fafc;
+    /* Slate 50 */
+    --text-secondary: #94a3b8;
+    /* Slate 400 */
+
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
+
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --border-radius: 16px;
+
+    --bg-gradient-1: rgba(99, 102, 241, 0.15);
+    --bg-gradient-2: rgba(168, 85, 247, 0.15);
 }
 
 /* ===== THEME: LIGHT ===== */
@@ -803,13 +813,27 @@ body {
 }
 
 .menu-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: var(--shadow-lg);
-    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-8px) scale(1.02);
+    box-shadow:
+        0 20px 40px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(99, 102, 241, 0.2);
+    border-color: rgba(99, 102, 241, 0.5);
 }
 
 .menu-card:hover::before {
     opacity: 1;
+}
+
+.menu-card:hover .card-icon {
+    transform: scale(1.2) rotate(5deg);
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.4));
+}
+
+.menu-card:hover h3 {
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .menu-icon {
@@ -954,29 +978,6 @@ body {
 }
 
 .score-label {
-    display: block;
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.score-value {
-    display: block;
-    font-size: 2.5rem;
-    font-weight: 700;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-
-.canvas-wrapper {
-    position: relative;
-    width: 400px;
-    height: 600px;
-    border-radius: var(--border-radius);
     overflow: hidden;
 }
 
@@ -1817,4 +1818,352 @@ body {
 .golden-duck-img:hover {
     filter: drop-shadow(0 0 25px rgba(255, 215, 0, 0.8));
     transform: scale(1.05);
+}
+
+/* Flappy Overlay Constraint Fix */
+.canvas-wrapper {
+    position: relative !important;
+    overflow: hidden;
+}
+
+.game-overlay,
+#flappyOverlay {
+    position: absolute !important;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+    border-radius: var(--border-radius);
+    z-index: 10;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Weather Section */
+.weather-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 50vh;
+}
+
+.weather-card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 24px;
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 400px;
+    backdrop-filter: blur(20px);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+    color: var(--text-primary);
+    position: relative;
+    overflow: hidden;
+}
+
+.weather-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, transparent 100%);
+    pointer-events: none;
+}
+
+.weather-header {
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.city-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+.date-time {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin-top: 0.5rem;
+}
+
+.weather-main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 2;
+}
+
+.weather-icon-large {
+    width: 120px;
+    height: 120px;
+    filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.3));
+    animation: float 4s ease-in-out infinite;
+}
+
+.temp-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    margin: 1rem 0;
+}
+
+.temp-value {
+    font-size: 4.5rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(180deg, #fff 0%, #cbd5e1 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.temp-unit {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 10px;
+    color: var(--text-secondary);
+}
+
+.weather-desc {
+    font-size: 1.25rem;
+    text-transform: capitalize;
+    color: var(--text-secondary);
+}
+
+.weather-details {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--card-border);
+    position: relative;
+    z-index: 2;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-icon {
+    font-size: 1.5rem;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+/* Weather Duck Avatar */
+.weather-avatar-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    margin-bottom: 1rem;
+}
+
+.weather-duck-avatar {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    z-index: 10;
+    position: relative;
+    filter: drop-shadow(0 0 15px rgba(255, 215, 0, 0.4));
+    animation: duckfloat 3s ease-in-out infinite;
+}
+
+.weather-effect-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* Weather Effects - Reused & Refined */
+/* SUNNY */
+.effect-sunny::before {
+    content: '☀️';
+    position: absolute;
+    font-size: 5rem;
+    top: -30px;
+    right: -30px;
+    animation: spin-sun 10s linear infinite;
+    z-index: 5;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+@keyframes spin-sun {
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* RAINY */
+.effect-rainy {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="20" font-size="20">💧</text></svg>');
+    animation: rain-fall 1s linear infinite;
+    opacity: 0.8;
+}
+
+@keyframes rain-fall {
+    0% {
+        background-position: 0 -20px;
+    }
+
+    100% {
+        background-position: 0 100px;
+    }
+}
+
+/* CLOUDY */
+.effect-cloudy::after {
+    content: '☁️';
+    position: absolute;
+    font-size: 4rem;
+    top: 0px;
+    left: -20px;
+    animation: float-cloud 3s ease-in-out infinite;
+    opacity: 0.9;
+    filter: drop-shadow(0 5px 5px rgba(0, 0, 0, 0.2));
+}
+
+@keyframes float-cloud {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    50% {
+        transform: translateX(10px);
+    }
+}
+
+/* SNOW */
+.effect-snowy::before {
+    content: '❄️';
+    position: absolute;
+    font-size: 2rem;
+    top: 0;
+    animation: snow-fall 2s linear infinite;
+}
+
+@keyframes snow-fall {
+    from {
+        transform: translateY(-10px) rotate(0deg);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateY(100px) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+/* THUNDER */
+.effect-thunder {
+    filter: drop-shadow(0 0 10px yellow);
+    animation: lightning 2s infinite;
+}
+
+@keyframes lightning {
+
+    0%,
+    90% {
+        filter: none;
+    }
+
+    92% {
+        filter: drop-shadow(0 0 20px yellow) brightness(1.5);
+    }
+
+    94% {
+        filter: none;
+    }
+
+    96% {
+        filter: drop-shadow(0 0 20px yellow) brightness(1.5);
+    }
+
+    100% {
+        filter: none;
+    }
+}
+
+/* NIGHT */
+.effect-night::after {
+    content: '🌙';
+    position: absolute;
+    font-size: 3rem;
+    top: 10px;
+    right: 10px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    animation: moon-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes moon-glow {
+    from {
+        transform: scale(1);
+        filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.5));
+    }
+
+    to {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 20px rgba(255, 255, 255, 0.8));
+    }
+}
+
+/* WINDY */
+.effect-windy::before {
+    content: '🍃';
+    position: absolute;
+    font-size: 2rem;
+    left: -20px;
+    top: 50%;
+    animation: wind-blow 2s linear infinite;
+}
+
+@keyframes wind-blow {
+    0% {
+        transform: translateX(0) rotate(0deg);
+        opacity: 0;
+    }
+
+    20% {
+        opacity: 1;
+    }
+
+    80% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateX(200px) rotate(360deg);
+        opacity: 0;
+    }
 }

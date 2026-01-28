@@ -99,11 +99,20 @@
                         <h3>Muack</h3>
                         <p>sientete bendecido</p>
                     </div>
+                    <!-- Weather Card -->
+                    <div class="menu-card" data-mode="weather">
+                        <div class="menu-icon">🌤️</div>
+                        <h3>El Tiempo</h3>
+                        <p>Motril en vivo</p>
+                    </div>
+                    <!-- Golden Duck Card -->
                     <div class="menu-card" data-mode="clicker">
                         <div class="menu-icon">💰</div>
                         <h3>Golden Duck</h3>
-                        <p>Clicks Globales</p>
+                        <p>¡Clicker Comunitario!</p>
                     </div>
+
+
                 </div>
             </main>
         </div>
@@ -313,6 +322,42 @@
 
                 <p class="clicker-hint">¡Todos los usuarios suman al mismo contador!</p>
             </main>
+        </div>
+    </section>
+
+    <!-- Weather Section -->
+    <section id="weatherSection" class="mode-section">
+        <div class="container weather-container">
+            <div class="weather-card">
+                <div class="weather-header">
+                    <h2 class="city-name">Motril</h2>
+                    <p class="date-time" id="weatherTime">--:--</p>
+                </div>
+                <div class="weather-main">
+                    <!-- Dynamic Weather Avatar -->
+                    <div class="weather-avatar-container" id="weatherAvatarContainer">
+                        <img src="maria.png" alt="Maria Weather" class="weather-duck-avatar">
+                        <div class="weather-effect-overlay" id="weatherEffect"></div>
+                    </div>
+                    <div class="temp-container">
+                        <span id="weatherTemp" class="temp-value">--</span>
+                        <span class="temp-unit">°C</span>
+                    </div>
+                    <p id="weatherCondition" class="weather-desc">Cargando...</p>
+                </div>
+                <div class="weather-details">
+                    <div class="detail-item">
+                        <span class="detail-icon">💧</span>
+                        <span id="weatherHumidity">--%</span>
+                        <span class="detail-label">Humedad</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-icon">💨</span>
+                        <span id="weatherWind">-- km/h</span>
+                        <span class="detail-label">Viento</span>
+                    </div>
+                </div>
+            </div>
         </div>
     </section>
 

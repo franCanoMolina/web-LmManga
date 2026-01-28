@@ -636,6 +636,13 @@ function initNavigation() {
 function switchMode(mode) {
     console.log("Switching to mode:", mode); // Debug log
 
+    // Valid modes:
+    const validModes = ['wheel', 'flappy', 'motivacion', 'clicker', 'weather', 'menu'];
+    if (!validModes.includes(mode)) {
+        console.warn("Unknown mode:", mode);
+        return;
+    }
+
     // Hide all sections
     modeSections.forEach(section => {
         section.classList.remove('active');
@@ -656,16 +663,15 @@ function switchMode(mode) {
         }
     });
 
-    // Valid modes check (optional, but good for safety)
-    const validModes = ['wheel', 'flappy', 'motivacion', 'clicker', 'menu'];
-    if (!validModes.includes(mode)) {
-        console.warn("Unknown mode:", mode);
-        return;
-    }
-
     // Pause flappy if leaving flappy section
     if (mode !== 'flappy' && isFlappyRunning) {
         pauseFlappyGame();
+    }
+
+
+    // Init weather if switching to it
+    if (mode === 'weather') {
+        fetchWeather();
     }
 }
 
@@ -1251,4 +1257,74 @@ function playQuackSound() {
 
     osc.start();
     osc.stop(audioContext.currentTime + 0.1);
+}
+
+// ===== WEATHER APP LOGIC =====
+async function fetchWeather() {
+    console.log("Fetching weather...");
+    const apiKey = '4a312ff6298b4615ab410247262801';
+    const city = 'Motril';
+    const url = `https://api.weatherapi.com/v1/current.json?key=${apiKey}&q=${city}&lang=es`;
+
+    const tempEl = document.getElementById('weatherTemp');
+    const descEl = document.getElementById('weatherCondition');
+    const humidEl = document.getElementById('weatherHumidity');
+    const windEl = document.getElementById('weatherWind');
+    const timeEl = document.getElementById('weatherTime');
+    const effectOverlay = document.getElementById('weatherEffect');
+
+    if (!tempEl) return;
+
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Weather data not found');
+
+        const data = await response.json();
+
+        tempEl.textContent = Math.round(data.current.temp_c);
+        descEl.textContent = data.current.condition.text;
+        humidEl.textContent = `${data.current.humidity}%`;
+        windEl.textContent = `${data.current.wind_kph} km/h`;
+
+        const now = new Date(data.location.localtime);
+        timeEl.textContent = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+
+        // Apply visual effects based on condition code/text
+        const code = data.current.condition.code;
+        const text = data.current.condition.text.toLowerCase();
+        const isDay = data.current.is_day; // 1 = Yes, 0 = No
+        const windKph = data.current.wind_kph;
+
+        // Reset effects
+        if (effectOverlay) {
+            effectOverlay.className = 'weather-effect-overlay';
+
+            // Night effect (priority base)
+            if (isDay === 0) {
+                effectOverlay.classList.add('effect-night');
+            }
+
+            // Overlays
+            if (code === 1000 && isDay === 1) { // Sunny/Clear (Day only)
+                effectOverlay.classList.add('effect-sunny');
+            } else if (code >= 1063 && (text.includes('rain') || text.includes('lluvia') || text.includes('drizzle'))) {
+                effectOverlay.classList.add('effect-rainy');
+            } else if (text.includes('snow') || text.includes('nieve') || code >= 1210) {
+                effectOverlay.classList.add('effect-snowy');
+            } else if (text.includes('thunder') || text.includes('tormenta')) {
+                effectOverlay.classList.add('effect-thunder');
+            } else if (code >= 1003 && !text.includes('rain')) { // Cloudy/Partly cloudy
+                effectOverlay.classList.add('effect-cloudy');
+            }
+
+            // Wind effect (can combine with others)
+            if (windKph > 15) {
+                effectOverlay.classList.add('effect-windy');
+            }
+        }
+
+    } catch (error) {
+        console.error('Error fetching weather:', error);
+        descEl.textContent = "Error al cargar";
+    }
 }
