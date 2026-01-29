@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import axios from 'axios';
+import { db } from '../firebase';
+import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 
 // Constants
 const CANVAS_WIDTH = 400;
@@ -30,6 +31,7 @@ const FlappyGame: React.FC = () => {
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
     const [selectedChar, setSelectedChar] = useState<'duck' | 'fran'>('duck');
+    const [error, setError] = useState<string | null>(null);
 
     // Leaderboard State
     const [leaderboard, setLeaderboard] = useState<{ name: string, score: number }[]>([]);
@@ -65,12 +67,25 @@ const FlappyGame: React.FC = () => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, []);
 
+    // ... (fetchLeaderboard, submitScore, startGame, resetToStart, addPipe, jump, loop, updatePhysics, checkCollision, endGame unchanged)
+
     const fetchLeaderboard = async () => {
         try {
-            const res = await axios.get('http://localhost:8000/leaderboard');
-            setLeaderboard(res.data);
-        } catch (err) {
+            setError(null);
+            const q = query(
+                collection(db, "leaderboard"),
+                orderBy("score", "desc"),
+                limit(5)
+            );
+            const querySnapshot = await getDocs(q);
+            const leaders: { name: string, score: number }[] = [];
+            querySnapshot.forEach((doc) => {
+                leaders.push(doc.data() as { name: string, score: number });
+            });
+            setLeaderboard(leaders);
+        } catch (err: any) {
             console.error("Error fetching leaderboard", err);
+            setError("Error cargando ranking: " + err.message);
         }
     };
 
@@ -78,14 +93,17 @@ const FlappyGame: React.FC = () => {
         if (!playerName.trim() || score <= 0) return;
         setIsSubmitting(true);
         try {
-            await axios.post('http://localhost:8000/leaderboard', {
+            setError(null);
+            await addDoc(collection(db, "leaderboard"), {
                 name: playerName,
-                score: score
+                score: score,
+                timestamp: serverTimestamp()
             });
             await fetchLeaderboard();
             setPlayerName(''); // Clear input but keep game over screen until restart
-        } catch (err) {
+        } catch (err: any) {
             console.error("Error submitting score", err);
+            setError("Error guardando puntos: " + err.message);
         } finally {
             setIsSubmitting(false);
         }
@@ -97,6 +115,22 @@ const FlappyGame: React.FC = () => {
         gameStateRef.current = 'playing';
         birdRef.current.velocity = JUMP_STRENGTH;
     };
+
+    // ... (rest of methods unchanged until return)
+
+    // Helper functions need to be inside or accessible, but I am just replacing the chunk for submitScore and then jump to render.
+    // Wait, replace_file_content needs contiguous block. 
+    // I can't skip lines in a single replacement if they are far apart. 
+    // I will just replace submitScore and then use another call or include more context?
+    // Actually the prompt says "Display error in leaderboard panel", which is at the bottom.
+    // I'll do submitScore replacement first, then the render part.
+    // Or I can use MultiReplace? Yes, MultiReplace is better here.
+
+    // I will abort this tool call and use multi_replace.
+    // Wait, I can't abort in the middle of a generation easily. I will just finish this tool call to ONLY replace submitScore, 
+    // and then another tool call to update the render.
+    // Wait, "EndLine: 458" suggests I intended to replace a huge chunk? 
+    // No, I'll just replace submitScore here.
 
     // Reset to Idle State (Levitating)
     const resetToStart = () => {
@@ -276,21 +310,54 @@ const FlappyGame: React.FC = () => {
         if (selectedChar === 'fran') {
             ctx.drawImage(franImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
         } else {
-            ctx.fillStyle = '#FFD700';
+            // Detailed Canvas Duck
+            // Body
+            ctx.fillStyle = '#FFD700'; // Gold
             ctx.beginPath();
-            ctx.arc(0, 0, BIRD_SIZE / 2, 0, Math.PI * 2);
+            ctx.ellipse(0, 5, BIRD_SIZE / 1.5, BIRD_SIZE / 1.8, 0, 0, Math.PI * 2);
             ctx.fill();
+
+            // Head
+            ctx.beginPath();
+            ctx.arc(8, -8, BIRD_SIZE / 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Wing (flapping effect based on velocity/rotation)
+            ctx.fillStyle = '#F4C430'; // Darker gold/saffron
+            ctx.beginPath();
+            ctx.ellipse(-5, 5, BIRD_SIZE / 2.5, BIRD_SIZE / 3.5, -0.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = '#DAA520';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
             // Beak
-            ctx.fillStyle = 'orange';
+            ctx.fillStyle = '#FF6B6B'; // Orange/Reddish
             ctx.beginPath();
-            ctx.moveTo(5, -5);
-            ctx.lineTo(15, 0);
-            ctx.lineTo(5, 5);
+            ctx.moveTo(15, -5);
+            ctx.quadraticCurveTo(25, 0, 15, 5);
+            ctx.lineTo(15, -5);
             ctx.fill();
+            ctx.strokeStyle = '#C0392B';
+            ctx.lineWidth = 1;
+            ctx.stroke();
+
             // Eye
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(12, -10, 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Pupil
             ctx.fillStyle = 'black';
             ctx.beginPath();
-            ctx.arc(5, -5, 2, 0, Math.PI * 2);
+            ctx.arc(14, -10, 2.5, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Shine in eye
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(15, -11, 1, 0, Math.PI * 2);
             ctx.fill();
         }
         ctx.restore();
@@ -433,6 +500,11 @@ const FlappyGame: React.FC = () => {
                         <h3 style={{ borderBottom: '1px solid var(--card-border)', paddingBottom: '0.5rem', marginBottom: '1rem', color: '#FFD700', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <span>🏆</span> Top 5 Ranking
                         </h3>
+                        {error && (
+                            <div style={{ color: '#ff5252', marginBottom: '1rem', fontSize: '0.9rem', background: 'rgba(255,0,0,0.1)', padding: '0.5rem', borderRadius: '4px' }}>
+                                {error}
+                            </div>
+                        )}
                         {leaderboard.length === 0 ? (
                             <p style={{ color: '#aaa', fontStyle: 'italic', textAlign: 'center' }}>Aún no hay récords</p>
                         ) : (

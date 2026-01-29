@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Allow read/write for all documents for now (Test Mode)
+    // WARNING: This is not secure for production.
+    match /{document=**} {
+      allow read, write: if true;
+    }
+
+    // Recommended Rules for Duck Games:
+    
+    // Global Stats (Golden Duck)
+    // - Anyone can read
+    // - Anyone can increment count
+    match /stats/global {
+      allow read: if true;
+      allow write: if true; // In production, add validation logic
+    }
+
+    // Leaderboard (Flappy Duck)
+    // - Anyone can read
+    // - Anyone can create new scores
+    match /leaderboard/{score} {
+      allow read: if true;
+      allow create: if true;
+    }
+  }
+}
