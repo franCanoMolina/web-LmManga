@@ -30,13 +30,17 @@ const FlappyGame: React.FC = () => {
     const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start');
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
-    const [selectedChar, setSelectedChar] = useState<'duck' | 'fran'>('duck');
+    const [selectedChar, setSelectedChar] = useState<'duck' | 'fran' | 'goat'>('duck');
     const [error, setError] = useState<string | null>(null);
 
     // Leaderboard State
     const [leaderboard, setLeaderboard] = useState<{ name: string, score: number }[]>([]);
     const [playerName, setPlayerName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+
+    // UI State
+    const [isSelectorOpen, setIsSelectorOpen] = useState(false);
+    const [unlockMessage, setUnlockMessage] = useState<string | null>(null);
 
     // Mutable Game State
     const gameStateRef = useRef<'start' | 'playing' | 'gameover'>('start');
@@ -45,9 +49,18 @@ const FlappyGame: React.FC = () => {
     const frameRef = useRef<number>(0);
     const scoreRef = useRef(0);
     const franImgRef = useRef<HTMLImageElement>(new Image());
+    const duckImgRef = useRef<HTMLImageElement>(new Image());
+    const goatImgRef = useRef<HTMLImageElement>(new Image());
+    const selectedCharRef = useRef<'duck' | 'fran' | 'goat'>('duck');
+
+    useEffect(() => {
+        selectedCharRef.current = selectedChar;
+    }, [selectedChar]);
 
     useEffect(() => {
         franImgRef.current.src = '/fran.png';
+        duckImgRef.current.src = '/duck-character.png';
+        goatImgRef.current.src = '/goat.png';
         const savedHigh = localStorage.getItem('flappyHighScore');
         if (savedHigh) setHighScore(parseInt(savedHigh));
 
@@ -60,14 +73,19 @@ const FlappyGame: React.FC = () => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault();
-                jump();
+                if (gameStateRef.current === 'start' && !isSelectorOpen && !unlockMessage) {
+                    startGame();
+                } else if (gameStateRef.current === 'playing') {
+                    jump();
+                }
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
-    }, []);
-
-    // ... (fetchLeaderboard, submitScore, startGame, resetToStart, addPipe, jump, loop, updatePhysics, checkCollision, endGame unchanged)
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            if (frameRef.current) cancelAnimationFrame(frameRef.current);
+        };
+    }, [isSelectorOpen, unlockMessage]);
 
     const fetchLeaderboard = async () => {
         try {
@@ -111,26 +129,14 @@ const FlappyGame: React.FC = () => {
 
     // Start the game (Transition from Idle -> Playing)
     const startGame = () => {
+        if (pipesRef.current.length === 0) {
+            addPipe(CANVAS_WIDTH);
+            addPipe(CANVAS_WIDTH + 250);
+        }
         setGameState('playing');
         gameStateRef.current = 'playing';
         birdRef.current.velocity = JUMP_STRENGTH;
     };
-
-    // ... (rest of methods unchanged until return)
-
-    // Helper functions need to be inside or accessible, but I am just replacing the chunk for submitScore and then jump to render.
-    // Wait, replace_file_content needs contiguous block. 
-    // I can't skip lines in a single replacement if they are far apart. 
-    // I will just replace submitScore and then use another call or include more context?
-    // Actually the prompt says "Display error in leaderboard panel", which is at the bottom.
-    // I'll do submitScore replacement first, then the render part.
-    // Or I can use MultiReplace? Yes, MultiReplace is better here.
-
-    // I will abort this tool call and use multi_replace.
-    // Wait, I can't abort in the middle of a generation easily. I will just finish this tool call to ONLY replace submitScore, 
-    // and then another tool call to update the render.
-    // Wait, "EndLine: 458" suggests I intended to replace a huge chunk? 
-    // No, I'll just replace submitScore here.
 
     // Reset to Idle State (Levitating)
     const resetToStart = () => {
@@ -164,7 +170,8 @@ const FlappyGame: React.FC = () => {
         if (gameStateRef.current === 'playing') {
             birdRef.current.velocity = JUMP_STRENGTH;
         } else if (gameStateRef.current === 'start') {
-            startGame();
+            // Only start if modals are closed (handled in useEffect/click) but safe to double check or let Start button handle it
+            // startGame(); // Removed to enforce button click or space when no modals
         }
     }, []);
 
@@ -307,8 +314,10 @@ const FlappyGame: React.FC = () => {
         }
         ctx.rotate(rotation);
 
-        if (selectedChar === 'fran') {
+        if (selectedCharRef.current === 'fran') {
             ctx.drawImage(franImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
+        } else if (selectedCharRef.current === 'goat') {
+            ctx.drawImage(goatImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
         } else {
             // Detailed Canvas Duck
             // Body
@@ -367,53 +376,213 @@ const FlappyGame: React.FC = () => {
         ctx.fillRect(0, CANVAS_HEIGHT - 10, CANVAS_WIDTH, 10);
     };
 
+    // Helper to get selected char name for display
+    const getCharName = (char: string) => {
+        switch (char) {
+            case 'duck': return '🦆 Pato';
+            case 'fran': return '🧔 Fran Exotik';
+            case 'goat': return '🐐 Cabrita BB';
+            default: return char;
+        }
+    };
+
     return (
         <section className="mode-section active">
-            <div className="container" style={{ textAlign: 'center' }}>
+            <div className="container" style={{ textAlign: 'center', maxWidth: '800px' }}>
                 <header className="header" style={{ marginBottom: '1rem' }}>
                     <h1 className="title">🦆 Flappy Duck</h1>
                     <p className="subtitle">Puntuación: {score} | Récord: {highScore}</p>
                 </header>
 
-                <div className="game-container" style={{
+                {error && <div style={{ color: 'red', marginBottom: '1rem' }}>{error}</div>}
+
+                <div style={{
                     display: 'flex',
                     gap: '2rem',
                     justifyContent: 'center',
-                    alignItems: 'center',
+                    alignItems: 'flex-start',
                     flexWrap: 'wrap',
-                    flexDirection: 'row'
+                    maxWidth: '100%'
                 }}>
-
-                    {/* Game Canvas */}
-                    <div className="canvas-wrapper" style={{
-                        position: 'relative',
-                        display: 'inline-block',
-                        boxShadow: '0 10px 30px rgba(0,0,0,0.3)',
-                        borderRadius: '12px'
-                    }}>
+                    {/* CANVAS CONTAINER */}
+                    <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
                         <canvas
                             ref={canvasRef}
-                            width={CANVAS_WIDTH}
-                            height={CANVAS_HEIGHT}
-                            onClick={jump}
+                            onClick={(e) => {
+                                // Only jump on click if playing. If start/gameover, buttons/modals handle it.
+                                if (gameState === 'playing') jump();
+                            }}
+                            width={400}
+                            height={600}
                             style={{
+                                border: '4px solid #fff',
                                 borderRadius: '12px',
                                 background: '#70c5ce',
                                 cursor: 'pointer',
                                 maxWidth: '100%',
-                                height: 'auto'
+                                height: 'auto',
+                                WebkitTapHighlightColor: 'transparent',
+                                touchAction: 'none',
+                                userSelect: 'none',
+                                outline: 'none'
                             }}
                         ></canvas>
 
-                        {gameState === 'start' && (
-                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', borderRadius: '12px' }}>
-                                <h2 style={{ color: 'white', marginBottom: '1rem' }}>Flappy Duck</h2>
-                                <p style={{ color: '#ddd', marginBottom: '1rem' }}>Elige personaje:</p>
-                                <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-                                    <button className={`btn ${selectedChar === 'duck' ? 'btn-primary' : 'btn-secondary'}`} onClick={(e) => { e.stopPropagation(); setSelectedChar('duck'); }} style={{ width: 'auto' }}>🦆 Pato</button>
-                                    <button className={`btn ${selectedChar === 'fran' ? 'btn-primary' : 'btn-secondary'}`} onClick={(e) => { e.stopPropagation(); setSelectedChar('fran'); }} style={{ width: 'auto' }}>🧔 Fran</button>
+                        {/* START SCREEN */}
+                        {gameState === 'start' && !isSelectorOpen && !unlockMessage && (
+                            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', borderRadius: '12px', backdropFilter: 'blur(2px)' }}>
+                                <h2 style={{ color: 'white', marginBottom: '0.5rem', textShadow: '0 2px 4px rgba(0,0,0,0.5)' }}>¡Listo?</h2>
+
+                                <div style={{ background: 'rgba(255,255,255,0.2)', padding: '1rem', borderRadius: '12px', marginBottom: '1.5rem', backdropFilter: 'blur(5px)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                                    <p style={{ color: 'white', marginBottom: '0.5rem', fontSize: '0.9rem' }}>Personaje actual:</p>
+                                    <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}>
+                                        {getCharName(selectedChar)}
+                                    </div>
                                 </div>
-                                <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); startGame(); }}>TAP o ESPACIO</button>
+
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={(e) => { e.stopPropagation(); setIsSelectorOpen(true); }}
+                                    style={{ marginBottom: '1rem', background: 'white', color: '#70c5ce', border: 'none', fontWeight: 'bold', width: 'auto' }}
+                                >
+                                    🔄 Elegir Personaje
+                                </button>
+
+                                <button
+                                    className="btn btn-primary"
+                                    onClick={(e) => { e.stopPropagation(); startGame(); }}
+                                    style={{
+                                        fontSize: '1.5rem',
+                                        padding: '1rem 3rem',
+                                        boxShadow: '0 4px 15px rgba(0,0,0,0.3)',
+                                        animation: 'pulse 1.5s infinite'
+                                    }}
+                                >
+                                    JUGAR
+                                </button>
+                            </div>
+                        )}
+
+                        {/* CHARACTER SELECTOR MODAL */}
+                        {isSelectorOpen && (
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                background: 'var(--card-bg)',
+                                backdropFilter: 'blur(10px)',
+                                zIndex: 20,
+                                borderRadius: '12px',
+                                display: 'flex',
+                                flexDirection: 'column',
+                                padding: '1.5rem'
+                            }}>
+                                <h3 style={{ color: 'var(--text-primary)', marginBottom: '1.5rem' }}>Selecciona Personaje</h3>
+
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', overflowY: 'auto', paddingBottom: '1rem' }}>
+
+                                    {/* DUCK */}
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSelectedChar('duck'); setIsSelectorOpen(false); }}
+                                        style={{
+                                            background: selectedChar === 'duck' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                                            color: selectedChar === 'duck' ? 'white' : 'var(--text-primary)'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '2.5rem' }}>🦆</span>
+                                        <span style={{ fontWeight: 'bold' }}>Pato</span>
+                                    </button>
+
+                                    {/* FRAN */}
+                                    <button
+                                        onClick={(e) => { e.stopPropagation(); setSelectedChar('fran'); setIsSelectorOpen(false); }}
+                                        style={{
+                                            background: selectedChar === 'fran' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.1)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                                            color: selectedChar === 'fran' ? 'white' : 'var(--text-primary)'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '2.5rem' }}>🧔</span>
+                                        <span style={{ fontWeight: 'bold' }}>Fran</span>
+                                    </button>
+
+                                    {/* GOAT */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const clicks = parseInt(localStorage.getItem('golden_duck_clicks') || '0');
+                                            if (clicks >= 500) {
+                                                setSelectedChar('goat');
+                                                setIsSelectorOpen(false);
+                                            } else {
+                                                setUnlockMessage("Tienes que llegar a 500 clicks en Golden Goal");
+                                            }
+                                        }}
+                                        style={{
+                                            background: selectedChar === 'goat' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                                            opacity: (parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? 1 : 0.7,
+                                            color: selectedChar === 'goat' ? 'white' : 'var(--text-primary)'
+                                        }}
+                                    >
+                                        <span style={{ fontSize: '2.5rem' }}>{(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? '🐐' : '🔒'}</span>
+                                        <span style={{ fontWeight: 'bold' }}>Cabrita BB</span>
+                                    </button>
+                                </div>
+
+                                <button
+                                    className="btn btn-secondary"
+                                    onClick={(e) => { e.stopPropagation(); setIsSelectorOpen(false); }}
+                                    style={{ marginTop: 'auto' }}
+                                >
+                                    Cancelar
+                                </button>
+                            </div>
+                        )}
+
+                        {/* CUSTOM UNLOCK ALERT */}
+                        {unlockMessage && (
+                            <div style={{
+                                position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+                                background: 'rgba(0,0,0,0.7)',
+                                zIndex: 30,
+                                borderRadius: '12px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                padding: '2rem'
+                            }}>
+                                <div style={{
+                                    background: 'var(--card-bg)',
+                                    backdropFilter: 'blur(10px)',
+                                    border: '1px solid var(--card-border)',
+                                    borderRadius: '16px',
+                                    padding: '2rem',
+                                    textAlign: 'center',
+                                    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
+                                    animation: 'slideIn 0.3s ease-out',
+                                    width: '100%'
+                                }}>
+                                    <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🔒</div>
+                                    <h3 style={{ color: 'var(--text-primary)', marginBottom: '1rem', fontSize: '1.2rem' }}>¡Bloqueado!</h3>
+                                    <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>{unlockMessage}</p>
+                                    <button
+                                        className="btn btn-primary"
+                                        onClick={(e) => { e.stopPropagation(); setUnlockMessage(null); }}
+                                        style={{ width: '100%' }}
+                                    >
+                                        Entendido
+                                    </button>
+                                </div>
                             </div>
                         )}
 
@@ -491,7 +660,8 @@ const FlappyGame: React.FC = () => {
                         padding: '1.5rem',
                         borderRadius: '16px',
                         border: '1px solid var(--card-border)',
-                        width: '300px',
+                        width: '100%',
+                        maxWidth: '300px',
                         textAlign: 'left',
                         boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
                         maxHeight: '600px',

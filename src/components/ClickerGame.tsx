@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
-import { doc, onSnapshot, updateDoc, increment, setDoc, getDoc } from 'firebase/firestore';
 
 // Common sound utility (reused)
 const playSound = (freq: number, type: 'sine' | 'square' | 'triangle' = 'sine', duration: number = 0.1) => {
@@ -29,62 +27,32 @@ const playClickSound = () => {
 
 const ClickerGame: React.FC = () => {
     const [count, setCount] = useState(0);
-    const [isConnected, setIsConnected] = useState(false);
     const [currentSkin, setCurrentSkin] = useState<'duck' | 'apple' | 'goat' | 'principito'>('duck');
     const [error, setError] = useState<string | null>(null);
 
+    // Initialize from LocalStorage
     useEffect(() => {
-        // Reference to the globalstats document
-        const statsRef = doc(db, "stats", "global");
-
-        // Subscribe to real-time updates
-        const unsubscribe = onSnapshot(statsRef, (docSnap) => {
-            setError(null);
-            if (docSnap.exists()) {
-                setCount(docSnap.data().count || 0);
-                setIsConnected(true);
+        try {
+            const savedCount = localStorage.getItem('golden_duck_clicks');
+            if (savedCount) {
+                setCount(parseInt(savedCount));
             } else {
-                // If document doesn't exist, initialize it
-                setDoc(statsRef, { count: 0 }).catch(err => {
-                    console.error("Init error:", err);
-                    setError("No se pudo inicializar: " + err.message);
-                });
+                localStorage.setItem('golden_duck_clicks', '0');
                 setCount(0);
-                setIsConnected(true);
             }
-        }, (err) => {
-            console.error("Error connecting to Firebase:", err);
-            setIsConnected(false);
-            setError("Error de conexión: " + err.message);
-        });
-
-        return () => unsubscribe();
+        } catch (err: any) {
+            console.error("Error reading localStorage:", err);
+            setError("Error cargando progreso local");
+        }
     }, []);
 
-    const handleClick = async (e: React.MouseEvent) => {
-        // Optimistic UI update for particle (actual count comes from listener)
+    const handleClick = (e: React.MouseEvent) => {
         createParticle(e.clientX, e.clientY);
         playQuack();
 
-        try {
-            const statsRef = doc(db, "stats", "global");
-            // Increment the count atomically in Firestore
-            await updateDoc(statsRef, {
-                count: increment(1)
-            });
-        } catch (error) {
-            console.error("Error updating count:", error);
-            // Retry initialization if it failed before
-            try {
-                const statsRef = doc(db, "stats", "global");
-                const docSnap = await getDoc(statsRef);
-                if (!docSnap.exists()) {
-                    await setDoc(statsRef, { count: 1 });
-                }
-            } catch (err) {
-                console.error("Retry failed", err);
-            }
-        }
+        const newCount = count + 1;
+        setCount(newCount);
+        localStorage.setItem('golden_duck_clicks', newCount.toString());
     };
 
     const createParticle = (x: number, y: number) => {
@@ -103,44 +71,29 @@ const ClickerGame: React.FC = () => {
         setTimeout(() => particle.remove(), 1000);
     };
 
-    const getSkinEmoji = () => {
+    const getSkinImage = () => {
+        // Return absolute paths to public assets
         switch (currentSkin) {
-            case 'duck': return '🦆';
-            case 'apple': return '🍎';
-            case 'goat': return '🐐';
-            case 'principito': return '🤴'; // Placeholder for Principito image/emoji
-            default: return '🦆';
+            case 'apple': return '/golden-apple.png';
+            case 'goat': return '/goat.png';
+            case 'principito': return '/principito.png';
+            default: return '/duck.png';
         }
     };
-
-    // If you have images, replace the emoji return with an <img> tag in the render
-    const renderSkin = () => {
-        // Using <img> if these assets exist in public/
-        if (['goat', 'apple', 'principito'].includes(currentSkin)) {
-            // We'll use emojis for simplicity if images are missing or complex to layout, 
-            // but the user had specific pngs. Let's try to use them if they match the backup logic.
-            // Based on file list: golden-apple.png, goat.png, principito.png exist.
-            if (currentSkin === 'apple') return <img src="/golden-apple.png" alt="Golden Apple" style={{ width: '200px', height: '200px', objectFit: 'contain' }} draggable={false} />;
-            if (currentSkin === 'goat') return <img src="/goat.png" alt="Goat" style={{ width: '200px', height: '200px', objectFit: 'contain' }} draggable={false} />;
-            if (currentSkin === 'principito') return <img src="/principito.png" alt="Principito" style={{ width: '200px', height: '200px', objectFit: 'contain' }} draggable={false} />;
-        }
-        return <div style={{ fontSize: '10rem' }}>{getSkinEmoji()}</div>;
-    };
-
 
     return (
         <section className="mode-section active">
             <div className="container" style={{ textAlign: 'center' }}>
                 <header className="header">
-                    <h1 className="title">💰 Golden Duck Clicker</h1>
-                    <p className="subtitle">Contador Mundial Real-time</p>
+                    <h1 className="title">Golden Duck Clicker</h1>
+                    <p className="subtitle">¡Consigue clicks para desbloquear recompensas!</p>
                 </header>
 
                 <div className="clicker-content">
                     <div className="global-counter-panel" style={{ marginBottom: '2rem' }}>
-                        <h3 style={{ color: 'var(--text-secondary)' }}>CLICKS GLOBALES</h3>
+                        <h3 style={{ color: 'var(--text-secondary)' }}>TUS CLICKS</h3>
                         <div className="global-counter" style={{ fontSize: '4rem', fontWeight: 'bold', color: '#FFD700', textShadow: '0 0 20px rgba(255, 215, 0, 0.5)' }}>
-                            {isConnected ? count.toLocaleString() : 'Conectando...'}
+                            {count.toLocaleString()}
                         </div>
                         {error && (
                             <div style={{ color: '#ff5252', marginTop: '1rem', fontSize: '0.9rem', background: 'rgba(255,0,0,0.1)', padding: '0.5rem', borderRadius: '4px' }}>
@@ -151,23 +104,58 @@ const ClickerGame: React.FC = () => {
 
                     <div
                         className="golden-duck-container"
-                        style={{ margin: '0 auto 2rem auto', cursor: 'pointer', userSelect: 'none', transition: 'transform 0.1s' }}
-                        onMouseDown={(e) => {
-                            e.currentTarget.style.transform = 'scale(0.95)';
-                            handleClick(e);
+                        onClick={handleClick}
+                        style={{
+                            cursor: 'pointer',
+                            transition: 'transform 0.1s',
+                            display: 'inline-block',
+                            position: 'relative',
+                            userSelect: 'none',
+                            WebkitTapHighlightColor: 'transparent', // Fix mobile tap highlight
+                            touchAction: 'manipulation' // Improve touch response
                         }}
+                        onMouseDown={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
                         onMouseUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
-                        onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+                        onTouchStart={(e) => e.currentTarget.style.transform = 'scale(0.95)'}
+                        onTouchEnd={(e) => e.currentTarget.style.transform = 'scale(1)'}
                     >
-                        {renderSkin()}
+                        <div className="glow-effect" style={{
+                            position: 'absolute',
+                            top: '50%',
+                            left: '50%',
+                            transform: 'translate(-50%, -50%)',
+                            width: '300px',
+                            height: '300px',
+                            background: 'radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, transparent 70%)',
+                            zIndex: -1,
+                            pointerEvents: 'none',
+                            animation: 'pulse 2s infinite'
+                        }}></div>
+
+                        {currentSkin === 'duck' ? (
+                            <div style={{ fontSize: '10rem', lineHeight: 1, filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))' }}>
+                                🦆
+                            </div>
+                        ) : (
+                            <img
+                                src={getSkinImage()}
+                                alt="Golden Duck"
+                                style={{
+                                    width: '250px',
+                                    height: '250px',
+                                    objectFit: 'contain',
+                                    filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.3))'
+                                }}
+                            />
+                        )}
                     </div>
 
-                    {/* Skin Selector - MOVED BELOW CHARACTER */}
-                    <div className="skin-selector" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginBottom: '2rem' }}>
+                    {/* Skin Selector Moved Below */}
+                    <div className="skin-selector" style={{ marginTop: '3rem', display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
                         <button className={`btn ${currentSkin === 'duck' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCurrentSkin('duck')} style={{ width: 'auto' }}>🦆 Pato</button>
                         <button className={`btn ${currentSkin === 'apple' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCurrentSkin('apple')} style={{ width: 'auto' }}>🍎 Manzana</button>
                         <button className={`btn ${currentSkin === 'goat' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCurrentSkin('goat')} style={{ width: 'auto' }}>🐐 Cabra</button>
-                        <button className={`btn ${currentSkin === 'principito' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCurrentSkin('principito')} style={{ width: 'auto' }}>🤴 Principito</button>
+                        <button className={`btn ${currentSkin === 'principito' ? 'btn-primary' : 'btn-secondary'}`} onClick={() => setCurrentSkin('principito')} style={{ width: 'auto' }}>👑 Principito</button>
                     </div>
                 </div>
             </div>

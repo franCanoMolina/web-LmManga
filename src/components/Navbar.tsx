@@ -9,6 +9,7 @@ interface NavbarProps {
 const Navbar: React.FC<NavbarProps> = ({ toggleTheme, currentTheme }) => {
     const [isThemeOpen, setIsThemeOpen] = useState(false);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     const toggleSound = () => {
         const newState = !soundEnabled;
@@ -16,32 +17,47 @@ const Navbar: React.FC<NavbarProps> = ({ toggleTheme, currentTheme }) => {
         localStorage.setItem('wheelSound', newState.toString());
     };
 
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+    };
+
+    const closeMenu = () => {
+        setIsMenuOpen(false);
+    };
+
     return (
         <nav className="navbar">
             <div className="navbar-content">
-                <NavLink to="/" className="navbar-brand">
-                    <span className="brand-icon">🦆</span>
-                    <span className="brand-text">Los Duck Games</span>
-                </NavLink>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <button className="hamburger-btn" onClick={toggleMenu} aria-label="Menu">
+                        <span className="hamburger-line"></span>
+                        <span className="hamburger-line"></span>
+                        <span className="hamburger-line"></span>
+                    </button>
+                    <NavLink to="/" className="navbar-brand" onClick={closeMenu}>
+                        <span className="brand-icon">🦆</span>
+                        <span className="brand-text">Los Duck Games</span>
+                    </NavLink>
+                </div>
 
-                <div className="navbar-nav">
-                    <NavLink to="/wheel" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                <div className={`navbar-nav ${isMenuOpen ? 'active' : ''}`}>
+                    <NavLink to="/wheel" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🎯</span>
                         <span className="nav-text">Ruleta</span>
                     </NavLink>
-                    <NavLink to="/flappy" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                    <NavLink to="/flappy" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🦆</span>
                         <span className="nav-text">Flappy</span>
                     </NavLink>
-                    <NavLink to="/muack" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                    <NavLink to="/muack" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🐴</span>
                         <span className="nav-text">Muack</span>
                     </NavLink>
-                    <NavLink to="/clicker" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                    <NavLink to="/clicker" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">💰</span>
                         <span className="nav-text">Golden Duck</span>
                     </NavLink>
-                    <NavLink to="/weather" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                    <NavLink to="/weather" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🌤️</span>
                         <span className="nav-text">Tiempo</span>
                     </NavLink>
