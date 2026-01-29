@@ -408,7 +408,7 @@ const FlappyGame: React.FC = () => {
                     <div style={{ position: 'relative', width: '100%', maxWidth: '400px' }}>
                         <canvas
                             ref={canvasRef}
-                            onClick={(e) => {
+                            onClick={() => {
                                 // Only jump on click if playing. If start/gameover, buttons/modals handle it.
                                 if (gameState === 'playing') jump();
                             }}
