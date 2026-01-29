@@ -85,7 +85,7 @@ const ClickerGame: React.FC = () => {
         <section className="mode-section active">
             <div className="container" style={{ textAlign: 'center' }}>
                 <header className="header">
-                    <h1 className="title">Golden Duck Clicker</h1>
+                    <h1 className="title">Goal Duck Clicker</h1>
                     <p className="subtitle">¡Consigue clicks para desbloquear recompensas!</p>
                 </header>
 
@@ -139,7 +139,7 @@ const ClickerGame: React.FC = () => {
                         ) : (
                             <img
                                 src={getSkinImage()}
-                                alt="Golden Duck"
+                                alt="Goal Duck"
                                 style={{
                                     width: '250px',
                                     height: '250px',

@@ -1350,9 +1350,7 @@ body {
         display: none;
     }
 
-    .nav-text {
-        display: none;
-    }
+    /* .nav-text shown in mobile hamburger menu */
 
     @media (max-width: 480px) {
         .overlay-content {
@@ -1465,10 +1463,7 @@ body {
         /* Hide brand name to save space */
     }
 
-    .nav-text {
-        display: none;
-        /* Hide nav labels, show only icons */
-    }
+    /* .nav-text shown in mobile menu */
 
     .nav-btn {
         padding: 0.5rem;
@@ -1710,7 +1705,7 @@ body {
     color: #FFD700;
 }
 
-/* Golden Duck Clicker Styles */
+/* Goal Duck Clicker Styles */
 .clicker-content {
     display: flex;
     flex-direction: column;

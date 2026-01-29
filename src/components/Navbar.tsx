@@ -55,7 +55,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleTheme, currentTheme }) => {
                     </NavLink>
                     <NavLink to="/clicker" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">💰</span>
-                        <span className="nav-text">Golden Duck</span>
+                        <span className="nav-text">Goal Duck</span>
                     </NavLink>
                     <NavLink to="/weather" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🌤️</span>

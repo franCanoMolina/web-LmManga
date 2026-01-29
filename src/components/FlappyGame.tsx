@@ -30,7 +30,7 @@ const FlappyGame: React.FC = () => {
     const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start');
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
-    const [selectedChar, setSelectedChar] = useState<'duck' | 'fran' | 'goat'>('duck');
+    const [selectedChar, setSelectedChar] = useState<'duck' | 'fran' | 'goat' | 'bellako' | 'pochita'>('duck');
     const [error, setError] = useState<string | null>(null);
 
     // Leaderboard State
@@ -51,7 +51,9 @@ const FlappyGame: React.FC = () => {
     const franImgRef = useRef<HTMLImageElement>(new Image());
     const duckImgRef = useRef<HTMLImageElement>(new Image());
     const goatImgRef = useRef<HTMLImageElement>(new Image());
-    const selectedCharRef = useRef<'duck' | 'fran' | 'goat'>('duck');
+    const bellakoImgRef = useRef<HTMLImageElement>(new Image());
+    const pochitaImgRef = useRef<HTMLImageElement>(new Image());
+    const selectedCharRef = useRef<'duck' | 'fran' | 'goat' | 'bellako' | 'pochita'>('duck');
 
     useEffect(() => {
         selectedCharRef.current = selectedChar;
@@ -61,6 +63,8 @@ const FlappyGame: React.FC = () => {
         franImgRef.current.src = '/fran.png';
         duckImgRef.current.src = '/duck-character.png';
         goatImgRef.current.src = '/goat.png';
+        bellakoImgRef.current.src = '/santo-bellako.png';
+        pochitaImgRef.current.src = '/pochita.png';
         const savedHigh = localStorage.getItem('flappyHighScore');
         if (savedHigh) setHighScore(parseInt(savedHigh));
 
@@ -206,7 +210,10 @@ const FlappyGame: React.FC = () => {
         // Pipes
         for (let i = pipesRef.current.length - 1; i >= 0; i--) {
             const pipe = pipesRef.current[i];
-            pipe.x -= PIPE_SPEED;
+            // Progressive difficulty: speed increases with score
+            // Base speed 3, increases by 0.1 every 5 points, capped at 7.5
+            const currentSpeed = Math.min(7.5, PIPE_SPEED + Math.floor(scoreRef.current / 5) * 0.1);
+            pipe.x -= currentSpeed;
 
             if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
                 pipe.passed = true;
@@ -315,9 +322,19 @@ const FlappyGame: React.FC = () => {
         ctx.rotate(rotation);
 
         if (selectedCharRef.current === 'fran') {
+            // Fran: portrait orientation, good fill
             ctx.drawImage(franImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
         } else if (selectedCharRef.current === 'goat') {
-            ctx.drawImage(goatImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
+            // Goat: horizontal orientation, needs more height to match visual size
+            const goatSize = BIRD_SIZE * 1.4; // 40% larger to compensate horizontal layout
+            ctx.drawImage(goatImgRef.current, -goatSize / 2, -goatSize / 2, goatSize, goatSize);
+        } else if (selectedCharRef.current === 'bellako') {
+            // Santo Bellako: has decorative frame, slightly larger
+            const bellakoSize = BIRD_SIZE * 1.2; // 20% larger to compensate frame
+            ctx.drawImage(bellakoImgRef.current, -bellakoSize / 2, -bellakoSize / 2, bellakoSize, bellakoSize);
+        } else if (selectedCharRef.current === 'pochita') {
+            // Pochita: standard size
+            ctx.drawImage(pochitaImgRef.current, -BIRD_SIZE / 2, -BIRD_SIZE / 2, BIRD_SIZE, BIRD_SIZE);
         } else {
             // Detailed Canvas Duck
             // Body
@@ -382,6 +399,8 @@ const FlappyGame: React.FC = () => {
             case 'duck': return '🦆 Pato';
             case 'fran': return '🧔 Fran Exotik';
             case 'goat': return '🐐 Cabrita BB';
+            case 'bellako': return '🔥 Santo Bellako';
+            case 'pochita': return '🐶 Pochita';
             default: return char;
         }
     };
@@ -492,7 +511,9 @@ const FlappyGame: React.FC = () => {
                                             color: selectedChar === 'duck' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        <span style={{ fontSize: '2.5rem' }}>🦆</span>
+                                        <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                                            <div style={{ fontSize: '4rem' }}>🦆</div>
+                                        </div>
                                         <span style={{ fontWeight: 'bold' }}>Pato</span>
                                     </button>
 
@@ -509,7 +530,7 @@ const FlappyGame: React.FC = () => {
                                             color: selectedChar === 'fran' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        <span style={{ fontSize: '2.5rem' }}>🧔</span>
+                                        <img src="/fran.png" alt="Fran" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
                                         <span style={{ fontWeight: 'bold' }}>Fran</span>
                                     </button>
 
@@ -536,8 +557,74 @@ const FlappyGame: React.FC = () => {
                                             color: selectedChar === 'goat' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        <span style={{ fontSize: '2.5rem' }}>{(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? '🐐' : '🔒'}</span>
+                                        {(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? (
+                                            <img src="/goat.png" alt="Cabrita BB" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                                        ) : (
+                                            <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
+                                        )}
                                         <span style={{ fontWeight: 'bold' }}>Cabrita BB</span>
+                                    </button>
+
+                                    {/* SANTO BELLAKO */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const highestScore = parseInt(localStorage.getItem('flappyHighScore') || '0');
+                                            if (highestScore >= 33) {
+                                                setSelectedChar('bellako');
+                                                setIsSelectorOpen(false);
+                                            } else {
+                                                setUnlockMessage("Tienes que conseguir 33 puntos en Flappy Duck");
+                                            }
+                                        }}
+                                        style={{
+                                            background: selectedChar === 'bellako' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                                            opacity: (parseInt(localStorage.getItem('flappyHighScore') || '0') >= 33) ? 1 : 0.7,
+                                            color: selectedChar === 'bellako' ? 'white' : 'var(--text-primary)'
+                                        }}
+                                    >
+                                        {(parseInt(localStorage.getItem('flappyHighScore') || '0') >= 33) ? (
+                                            <img src="/santo-bellako.png" alt="Santo Bellako" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                                        ) : (
+                                            <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
+                                        )}
+                                        <span style={{ fontWeight: 'bold' }}>Santo Bellako</span>
+                                    </button>
+
+                                    {/* POCHITA */}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            const goalDuckClicks = parseInt(localStorage.getItem('golden_duck_clicks') || '0');
+                                            if (goalDuckClicks >= 1000) {
+                                                setSelectedChar('pochita');
+                                                setIsSelectorOpen(false);
+                                            } else {
+                                                setUnlockMessage("Tienes que llegar a 1000 clicks en Goal Duck");
+                                            }
+                                        }}
+                                        style={{
+                                            background: selectedChar === 'pochita' ? 'var(--primary-gradient)' : 'rgba(255,255,255,0.05)',
+                                            border: '1px solid var(--card-border)',
+                                            borderRadius: '12px',
+                                            padding: '1rem',
+                                            cursor: 'pointer',
+                                            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
+                                            opacity: (parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 1000) ? 1 : 0.7,
+                                            color: selectedChar === 'pochita' ? 'white' : 'var(--text-primary)'
+                                        }}
+                                    >
+                                        {(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 1000) ? (
+                                            <img src="/pochita.png" alt="Pochita" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
+                                        ) : (
+                                            <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
+                                        )}
+                                        <span style={{ fontWeight: 'bold' }}>Pochita</span>
                                     </button>
                                 </div>
 

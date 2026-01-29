@@ -50,7 +50,7 @@ const Home = () => {
 
             <NavLink to="/clicker" className="menu-card" style={{ textDecoration: 'none', color: 'inherit', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
               <div className="menu-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>💰</div>
-              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Golden Duck</h3>
+              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Goal Duck</h3>
               <p style={{ color: '#aaa' }}>Clicker Global</p>
             </NavLink>
           </div>
