@@ -94,6 +94,10 @@ const RunnerGame: React.FC = () => {
 
     const obstaclesRef = useRef<Obstacle[]>([]);
 
+    // Touch control state
+    const touchStartRef = useRef<{ x: number, y: number, time: number } | null>(null);
+    const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
+
     useEffect(() => {
         fetchLeaderboard();
         gameStateRef.current = 'start';
@@ -114,6 +118,10 @@ const RunnerGame: React.FC = () => {
                 playerRef.current.isDucking = false;
             }
         };
+
+        // Detect touch capability
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        setIsMobileControlsVisible(isTouchDevice);
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -190,6 +198,91 @@ const RunnerGame: React.FC = () => {
 
         if ((code === 'ArrowDown' || code === 'KeyS') && player.y === 0) {
             player.isDucking = true;
+        }
+    };
+
+    // Touch event handlers for mobile
+    const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
+        const touch = e.touches[0];
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+            time: Date.now()
+        };
+
+        // Start game on touch if on start screen
+        if (gameStateRef.current === 'start') {
+            startGame();
+        }
+    };
+
+    const handleTouchEnd = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
+        if (!touchStartRef.current || gameStateRef.current !== 'playing') {
+            touchStartRef.current = null;
+            return;
+        }
+
+        const touch = e.changedTouches[0];
+        const deltaX = touch.clientX - touchStartRef.current.x;
+        const deltaY = touch.clientY - touchStartRef.current.y;
+        const deltaTime = Date.now() - touchStartRef.current.time;
+
+        const SWIPE_THRESHOLD = 30;
+        const TAP_TIME_THRESHOLD = 200;
+
+        // Detect swipe for lane change
+        if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaTime < 300) {
+            if (deltaX > 0) {
+                handleInput('ArrowRight');
+            } else {
+                handleInput('ArrowLeft');
+            }
+        }
+        // Detect tap for jump (quick touch in upper part of screen)
+        else if (deltaTime < TAP_TIME_THRESHOLD && Math.abs(deltaX) < SWIPE_THRESHOLD && Math.abs(deltaY) < SWIPE_THRESHOLD) {
+            if (playerRef.current.y === 0) {
+                handleInput('Space');
+            }
+        }
+
+        touchStartRef.current = null;
+    };
+
+    // Button handlers for on-screen controls
+    const handleMobileLeft = (e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if (gameStateRef.current === 'playing') {
+            handleInput('ArrowLeft');
+        }
+    };
+
+    const handleMobileRight = (e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if (gameStateRef.current === 'playing') {
+            handleInput('ArrowRight');
+        }
+    };
+
+    const handleMobileJump = (e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if (gameStateRef.current === 'playing') {
+            handleInput('Space');
+        }
+    };
+
+    const handleMobileDuckStart = (e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if (gameStateRef.current === 'playing') {
+            playerRef.current.isDucking = true;
+        }
+    };
+
+    const handleMobileDuckEnd = (e: React.MouseEvent | React.TouchEvent) => {
+        e.stopPropagation();
+        if (gameStateRef.current === 'playing') {
+            playerRef.current.isDucking = false;
         }
     };
 
@@ -1139,10 +1232,141 @@ const RunnerGame: React.FC = () => {
                         border: '2px solid var(--card-border)',
                         borderRadius: '8px',
                         background: '#1a1a2e',
-                        cursor: gameState === 'gameover' ? 'pointer' : 'default'
+                        cursor: gameState === 'gameover' ? 'pointer' : 'default',
+                        touchAction: 'none',
+                        userSelect: 'none',
+                        WebkitTapHighlightColor: 'transparent'
                     }}
                     onClick={gameState === 'gameover' ? resetToStart : undefined}
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    onContextMenu={(e) => e.preventDefault()}
                 />
+
+                {/* Mobile On-Screen Controls */}
+                {isMobileControlsVisible && gameState === 'playing' && (
+                    <div style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        pointerEvents: 'none'
+                    }}>
+                        {/* Lane Control Buttons - Bottom */}
+                        <div style={{
+                            position: 'absolute',
+                            bottom: '20px',
+                            left: '50%',
+                            transform: 'translateX(-50%)',
+                            display: 'flex',
+                            gap: '80px',
+                            pointerEvents: 'auto'
+                        }}>
+                            <button
+                                onTouchStart={handleMobileLeft}
+                                onClick={handleMobileLeft}
+                                style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(76, 175, 80, 0.3)',
+                                    border: '2px solid rgba(76, 175, 80, 0.6)',
+                                    color: '#fff',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    touchAction: 'manipulation',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                ◀
+                            </button>
+                            <button
+                                onTouchStart={handleMobileRight}
+                                onClick={handleMobileRight}
+                                style={{
+                                    width: '60px',
+                                    height: '60px',
+                                    borderRadius: '50%',
+                                    background: 'rgba(76, 175, 80, 0.3)',
+                                    border: '2px solid rgba(76, 175, 80, 0.6)',
+                                    color: '#fff',
+                                    fontSize: '24px',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                    touchAction: 'manipulation',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center'
+                                }}
+                            >
+                                ▶
+                            </button>
+                        </div>
+
+                        {/* Jump Button - Right Side */}
+                        <button
+                            onTouchStart={handleMobileJump}
+                            onClick={handleMobileJump}
+                            style={{
+                                position: 'absolute',
+                                right: '20px',
+                                bottom: '120px',
+                                width: '70px',
+                                height: '70px',
+                                borderRadius: '50%',
+                                background: 'rgba(255, 193, 7, 0.3)',
+                                border: '3px solid rgba(255, 193, 7, 0.6)',
+                                color: '#fff',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto',
+                                touchAction: 'manipulation',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            ⬆<br />JUMP
+                        </button>
+
+                        {/* Duck Button - Right Side Below Jump */}
+                        <button
+                            onTouchStart={handleMobileDuckStart}
+                            onTouchEnd={handleMobileDuckEnd}
+                            onMouseDown={handleMobileDuckStart}
+                            onMouseUp={handleMobileDuckEnd}
+                            onMouseLeave={handleMobileDuckEnd}
+                            style={{
+                                position: 'absolute',
+                                right: '20px',
+                                bottom: '30px',
+                                width: '70px',
+                                height: '70px',
+                                borderRadius: '50%',
+                                background: 'rgba(33, 150, 243, 0.3)',
+                                border: '3px solid rgba(33, 150, 243, 0.6)',
+                                color: '#fff',
+                                fontSize: '14px',
+                                fontWeight: 'bold',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                                pointerEvents: 'auto',
+                                touchAction: 'manipulation',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                            }}
+                        >
+                            ⬇<br />DUCK
+                        </button>
+                    </div>
+                )}
 
                 {gameState === 'gameover' && (
                     <button
