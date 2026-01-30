@@ -30,7 +30,7 @@ const ClickerGame: React.FC = () => {
     const { gameData, updateGoalDuckClicks } = useAuth();
     const [count, setCount] = useState(0);
     const [currentSkin, setCurrentSkin] = useState<'duck' | 'apple' | 'goat' | 'principito'>('duck');
-    const [error, setError] = useState<string | null>(null);
+    const [error] = useState<string | null>(null);
 
     // Initialize from Firebase
     useEffect(() => {
