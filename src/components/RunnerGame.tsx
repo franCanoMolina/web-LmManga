@@ -96,7 +96,6 @@ const RunnerGame: React.FC = () => {
 
     // Touch control state
     const touchStartRef = useRef<{ x: number, y: number, time: number } | null>(null);
-    const [isMobileControlsVisible, setIsMobileControlsVisible] = useState(false);
 
     useEffect(() => {
         fetchLeaderboard();
@@ -118,10 +117,6 @@ const RunnerGame: React.FC = () => {
                 playerRef.current.isDucking = false;
             }
         };
-
-        // Detect touch capability
-        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-        setIsMobileControlsVisible(isTouchDevice);
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
@@ -227,64 +222,61 @@ const RunnerGame: React.FC = () => {
         const touch = e.changedTouches[0];
         const deltaX = touch.clientX - touchStartRef.current.x;
         const deltaY = touch.clientY - touchStartRef.current.y;
-        const deltaTime = Date.now() - touchStartRef.current.time;
 
-        const SWIPE_THRESHOLD = 30;
-        const TAP_TIME_THRESHOLD = 200;
+        const SWIPE_THRESHOLD = 40;
 
-        // Detect swipe for lane change
-        if (Math.abs(deltaX) > SWIPE_THRESHOLD && deltaTime < 300) {
-            if (deltaX > 0) {
-                handleInput('ArrowRight');
-            } else {
-                handleInput('ArrowLeft');
+        // Determine primary swipe direction
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        // Only process if it was a swipe (not a tap)
+        if (absX > SWIPE_THRESHOLD || absY > SWIPE_THRESHOLD) {
+            // Horizontal swipe (lane change) - takes priority if mostly horizontal
+            if (absX > absY) {
+                if (deltaX > 0) {
+                    handleInput('ArrowRight');
+                } else {
+                    handleInput('ArrowLeft');
+                }
             }
-        }
-        // Detect tap for jump (quick touch in upper part of screen)
-        else if (deltaTime < TAP_TIME_THRESHOLD && Math.abs(deltaX) < SWIPE_THRESHOLD && Math.abs(deltaY) < SWIPE_THRESHOLD) {
-            if (playerRef.current.y === 0) {
-                handleInput('Space');
+            // Vertical swipe
+            else {
+                if (deltaY < 0) {
+                    // Swipe up - Jump
+                    handleInput('Space');
+                } else {
+                    // Swipe down - Duck
+                    handleInput('ArrowDown');
+                }
             }
         }
 
         touchStartRef.current = null;
     };
 
-    // Button handlers for on-screen controls
-    const handleMobileLeft = (e: React.MouseEvent | React.TouchEvent) => {
-        e.stopPropagation();
-        if (gameStateRef.current === 'playing') {
-            handleInput('ArrowLeft');
+    // Handle touch move for continuous ducking
+    const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+        e.preventDefault();
+        if (!touchStartRef.current || gameStateRef.current !== 'playing') {
+            return;
         }
-    };
 
-    const handleMobileRight = (e: React.MouseEvent | React.TouchEvent) => {
-        e.stopPropagation();
-        if (gameStateRef.current === 'playing') {
-            handleInput('ArrowRight');
-        }
-    };
+        const touch = e.touches[0];
+        const deltaY = touch.clientY - touchStartRef.current.y;
 
-    const handleMobileJump = (e: React.MouseEvent | React.TouchEvent) => {
-        e.stopPropagation();
-        if (gameStateRef.current === 'playing') {
-            handleInput('Space');
-        }
-    };
-
-    const handleMobileDuckStart = (e: React.MouseEvent | React.TouchEvent) => {
-        e.stopPropagation();
-        if (gameStateRef.current === 'playing') {
+        // If swiping down significantly, start ducking
+        if (deltaY > 50) {
             playerRef.current.isDucking = true;
         }
     };
 
-    const handleMobileDuckEnd = (e: React.MouseEvent | React.TouchEvent) => {
-        e.stopPropagation();
-        if (gameStateRef.current === 'playing') {
-            playerRef.current.isDucking = false;
-        }
+    // Reset ducking when touch ends
+    const handleTouchCancel = () => {
+        playerRef.current.isDucking = false;
+        touchStartRef.current = null;
     };
+
+
 
     // Generate a trail of coins (like Subway Surfers)
     const spawnCoinTrail = () => {
@@ -1239,134 +1231,12 @@ const RunnerGame: React.FC = () => {
                     }}
                     onClick={gameState === 'gameover' ? resetToStart : undefined}
                     onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
+                    onTouchCancel={handleTouchCancel}
                     onContextMenu={(e) => e.preventDefault()}
                 />
 
-                {/* Mobile On-Screen Controls */}
-                {isMobileControlsVisible && gameState === 'playing' && (
-                    <div style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        pointerEvents: 'none'
-                    }}>
-                        {/* Lane Control Buttons - Bottom */}
-                        <div style={{
-                            position: 'absolute',
-                            bottom: '20px',
-                            left: '50%',
-                            transform: 'translateX(-50%)',
-                            display: 'flex',
-                            gap: '80px',
-                            pointerEvents: 'auto'
-                        }}>
-                            <button
-                                onTouchStart={handleMobileLeft}
-                                onClick={handleMobileLeft}
-                                style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    borderRadius: '50%',
-                                    background: 'rgba(76, 175, 80, 0.3)',
-                                    border: '2px solid rgba(76, 175, 80, 0.6)',
-                                    color: '#fff',
-                                    fontSize: '24px',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    touchAction: 'manipulation',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                ◀
-                            </button>
-                            <button
-                                onTouchStart={handleMobileRight}
-                                onClick={handleMobileRight}
-                                style={{
-                                    width: '60px',
-                                    height: '60px',
-                                    borderRadius: '50%',
-                                    background: 'rgba(76, 175, 80, 0.3)',
-                                    border: '2px solid rgba(76, 175, 80, 0.6)',
-                                    color: '#fff',
-                                    fontSize: '24px',
-                                    cursor: 'pointer',
-                                    boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                    touchAction: 'manipulation',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center'
-                                }}
-                            >
-                                ▶
-                            </button>
-                        </div>
-
-                        {/* Jump Button - Right Side */}
-                        <button
-                            onTouchStart={handleMobileJump}
-                            onClick={handleMobileJump}
-                            style={{
-                                position: 'absolute',
-                                right: '20px',
-                                bottom: '120px',
-                                width: '70px',
-                                height: '70px',
-                                borderRadius: '50%',
-                                background: 'rgba(255, 193, 7, 0.3)',
-                                border: '3px solid rgba(255, 193, 7, 0.6)',
-                                color: '#fff',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto',
-                                touchAction: 'manipulation',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            ⬆<br />JUMP
-                        </button>
-
-                        {/* Duck Button - Right Side Below Jump */}
-                        <button
-                            onTouchStart={handleMobileDuckStart}
-                            onTouchEnd={handleMobileDuckEnd}
-                            onMouseDown={handleMobileDuckStart}
-                            onMouseUp={handleMobileDuckEnd}
-                            onMouseLeave={handleMobileDuckEnd}
-                            style={{
-                                position: 'absolute',
-                                right: '20px',
-                                bottom: '30px',
-                                width: '70px',
-                                height: '70px',
-                                borderRadius: '50%',
-                                background: 'rgba(33, 150, 243, 0.3)',
-                                border: '3px solid rgba(33, 150, 243, 0.6)',
-                                color: '#fff',
-                                fontSize: '14px',
-                                fontWeight: 'bold',
-                                cursor: 'pointer',
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
-                                pointerEvents: 'auto',
-                                touchAction: 'manipulation',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center'
-                            }}
-                        >
-                            ⬇<br />DUCK
-                        </button>
-                    </div>
-                )}
 
                 {gameState === 'gameover' && (
                     <button
