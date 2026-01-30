@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { db } from '../firebase';
 import { collection, addDoc, getDocs, query, orderBy, limit, serverTimestamp } from 'firebase/firestore';
 
@@ -27,6 +28,7 @@ interface Pipe {
 
 const FlappyGame: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { gameData, updateFlappyHighScore, user } = useAuth();
     const [gameState, setGameState] = useState<'start' | 'playing' | 'gameover'>('start');
     const [score, setScore] = useState(0);
     const [highScore, setHighScore] = useState(0);
@@ -35,7 +37,6 @@ const FlappyGame: React.FC = () => {
 
     // Leaderboard State
     const [leaderboard, setLeaderboard] = useState<{ name: string, score: number }[]>([]);
-    const [playerName, setPlayerName] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // UI State
@@ -54,6 +55,7 @@ const FlappyGame: React.FC = () => {
     const bellakoImgRef = useRef<HTMLImageElement>(new Image());
     const pochitaImgRef = useRef<HTMLImageElement>(new Image());
     const selectedCharRef = useRef<'duck' | 'fran' | 'goat' | 'bellako' | 'pochita'>('duck');
+    const lastTimeRef = useRef<number>(0);
 
     useEffect(() => {
         selectedCharRef.current = selectedChar;
@@ -65,14 +67,13 @@ const FlappyGame: React.FC = () => {
         goatImgRef.current.src = '/goat.png';
         bellakoImgRef.current.src = '/santo-bellako.png';
         pochitaImgRef.current.src = '/pochita.png';
-        const savedHigh = localStorage.getItem('flappyHighScore');
-        if (savedHigh) setHighScore(parseInt(savedHigh));
+        setHighScore(gameData.flappyHighScore);
 
         fetchLeaderboard();
 
         // Start LOOP immediately for floating animation
         gameStateRef.current = 'start';
-        loop();
+        requestAnimationFrame(loop);
 
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
@@ -112,17 +113,16 @@ const FlappyGame: React.FC = () => {
     };
 
     const submitScore = async () => {
-        if (!playerName.trim() || score <= 0) return;
+        if (!user || score <= 0) return;
         setIsSubmitting(true);
         try {
             setError(null);
             await addDoc(collection(db, "leaderboard"), {
-                name: playerName,
+                name: user.username,
                 score: score,
                 timestamp: serverTimestamp()
             });
             await fetchLeaderboard();
-            setPlayerName(''); // Clear input but keep game over screen until restart
         } catch (err: any) {
             console.error("Error submitting score", err);
             setError("Error guardando puntos: " + err.message);
@@ -155,7 +155,7 @@ const FlappyGame: React.FC = () => {
         gameStateRef.current = 'start';
 
         if (frameRef.current) cancelAnimationFrame(frameRef.current);
-        loop();
+        requestAnimationFrame(loop);
     };
 
     const addPipe = (x: number) => {
@@ -179,11 +179,15 @@ const FlappyGame: React.FC = () => {
         }
     }, []);
 
-    const loop = () => {
+    const loop = (currentTime: number) => {
         // Run loop for both playing and start (for animation)
         if (gameStateRef.current !== 'playing' && gameStateRef.current !== 'start') return;
 
-        updatePhysics();
+        // Calculate delta time (target 60 FPS = 16.67ms)
+        const deltaTime = lastTimeRef.current ? Math.min((currentTime - lastTimeRef.current) / 16.67, 2) : 1;
+        lastTimeRef.current = currentTime;
+
+        updatePhysics(deltaTime);
         draw();
 
         if (gameStateRef.current === 'playing' && checkCollision()) {
@@ -193,7 +197,7 @@ const FlappyGame: React.FC = () => {
         }
     };
 
-    const updatePhysics = () => {
+    const updatePhysics = (deltaTime: number = 1) => {
         const bird = birdRef.current;
 
         if (gameStateRef.current === 'start') {
@@ -204,8 +208,8 @@ const FlappyGame: React.FC = () => {
             return; // Skip pipes and gravity
         }
 
-        bird.velocity += GRAVITY;
-        bird.y += bird.velocity;
+        bird.velocity += GRAVITY * deltaTime;
+        bird.y += bird.velocity * deltaTime;
 
         // Pipes
         for (let i = pipesRef.current.length - 1; i >= 0; i--) {
@@ -213,7 +217,7 @@ const FlappyGame: React.FC = () => {
             // Progressive difficulty: speed increases with score
             // Base speed 3, increases by 0.1 every 5 points, capped at 7.5
             const currentSpeed = Math.min(7.5, PIPE_SPEED + Math.floor(scoreRef.current / 5) * 0.1);
-            pipe.x -= currentSpeed;
+            pipe.x -= currentSpeed * deltaTime;
 
             if (!pipe.passed && pipe.x + PIPE_WIDTH < bird.x) {
                 pipe.passed = true;
@@ -256,7 +260,7 @@ const FlappyGame: React.FC = () => {
 
         if (scoreRef.current > highScore) {
             setHighScore(scoreRef.current);
-            localStorage.setItem('flappyHighScore', scoreRef.current.toString());
+            updateFlappyHighScore(scoreRef.current);
         }
         draw();
         // Auto-refresh leaderboard
@@ -538,12 +542,11 @@ const FlappyGame: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const clicks = parseInt(localStorage.getItem('golden_duck_clicks') || '0');
-                                            if (clicks >= 500) {
+                                            if (gameData.goalDuckClicks >= 500) {
                                                 setSelectedChar('goat');
                                                 setIsSelectorOpen(false);
                                             } else {
-                                                setUnlockMessage("Tienes que llegar a 500 clicks en Golden Goal");
+                                                setUnlockMessage("Tienes que llegar a 500 clicks en Goal Duck");
                                             }
                                         }}
                                         style={{
@@ -553,11 +556,11 @@ const FlappyGame: React.FC = () => {
                                             padding: '1rem',
                                             cursor: 'pointer',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
-                                            opacity: (parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? 1 : 0.7,
+                                            opacity: (gameData.goalDuckClicks >= 500) ? 1 : 0.7,
                                             color: selectedChar === 'goat' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        {(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 500) ? (
+                                        {(gameData.goalDuckClicks >= 500) ? (
                                             <img src="/goat.png" alt="Cabrita BB" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
                                         ) : (
                                             <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
@@ -569,8 +572,7 @@ const FlappyGame: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const highestScore = parseInt(localStorage.getItem('flappyHighScore') || '0');
-                                            if (highestScore >= 33) {
+                                            if (gameData.flappyHighScore >= 33) {
                                                 setSelectedChar('bellako');
                                                 setIsSelectorOpen(false);
                                             } else {
@@ -584,11 +586,11 @@ const FlappyGame: React.FC = () => {
                                             padding: '1rem',
                                             cursor: 'pointer',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
-                                            opacity: (parseInt(localStorage.getItem('flappyHighScore') || '0') >= 33) ? 1 : 0.7,
+                                            opacity: (gameData.flappyHighScore >= 33) ? 1 : 0.7,
                                             color: selectedChar === 'bellako' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        {(parseInt(localStorage.getItem('flappyHighScore') || '0') >= 33) ? (
+                                        {(gameData.flappyHighScore >= 33) ? (
                                             <img src="/santo-bellako.png" alt="Santo Bellako" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
                                         ) : (
                                             <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
@@ -600,8 +602,7 @@ const FlappyGame: React.FC = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            const goalDuckClicks = parseInt(localStorage.getItem('golden_duck_clicks') || '0');
-                                            if (goalDuckClicks >= 1000) {
+                                            if (gameData.goalDuckClicks >= 1000) {
                                                 setSelectedChar('pochita');
                                                 setIsSelectorOpen(false);
                                             } else {
@@ -615,11 +616,11 @@ const FlappyGame: React.FC = () => {
                                             padding: '1rem',
                                             cursor: 'pointer',
                                             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
-                                            opacity: (parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 1000) ? 1 : 0.7,
+                                            opacity: (gameData.goalDuckClicks >= 1000) ? 1 : 0.7,
                                             color: selectedChar === 'pochita' ? 'white' : 'var(--text-primary)'
                                         }}
                                     >
-                                        {(parseInt(localStorage.getItem('golden_duck_clicks') || '0') >= 1000) ? (
+                                        {(gameData.goalDuckClicks >= 1000) ? (
                                             <img src="/pochita.png" alt="Pochita" style={{ width: '80px', height: '80px', objectFit: 'cover', borderRadius: '8px', marginBottom: '0.5rem' }} />
                                         ) : (
                                             <div style={{ width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', marginBottom: '0.5rem' }}>🔒</div>
@@ -700,31 +701,10 @@ const FlappyGame: React.FC = () => {
                                     flexDirection: 'column',
                                     gap: '15px'
                                 }}>
-                                    <input
-                                        type="text"
-                                        placeholder="Escribe Tu Nombre"
-                                        value={playerName}
-                                        onChange={(e) => setPlayerName(e.target.value)}
-                                        className="option-input"
-                                        style={{
-                                            width: '100%',
-                                            textAlign: 'center',
-                                            color: 'black',
-                                            background: 'white',
-                                            padding: '12px',
-                                            fontSize: '1rem',
-                                            borderRadius: '8px',
-                                            border: '2px solid transparent',
-                                            marginBottom: '0',
-                                            display: 'block'
-                                        }}
-                                        maxLength={15}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
                                     <button
                                         className="btn btn-primary"
                                         onClick={(e) => { e.stopPropagation(); submitScore(); }}
-                                        disabled={isSubmitting || score === 0 || !playerName}
+                                        disabled={isSubmitting || score === 0}
                                         style={{
                                             width: '100%',
                                             marginTop: '0',

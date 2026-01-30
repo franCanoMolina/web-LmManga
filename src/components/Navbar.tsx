@@ -49,6 +49,10 @@ const Navbar: React.FC<NavbarProps> = ({ toggleTheme, currentTheme }) => {
                         <span className="nav-icon">🦆</span>
                         <span className="nav-text">Flappy</span>
                     </NavLink>
+                    <NavLink to="/runner" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
+                        <span className="nav-icon">🏃</span>
+                        <span className="nav-text">Runner</span>
+                    </NavLink>
                     <NavLink to="/muack" className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`} onClick={closeMenu}>
                         <span className="nav-icon">🐴</span>
                         <span className="nav-text">Muack</span>

@@ -1,20 +1,27 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
+import { useAuth } from './contexts/AuthContext';
 import Layout from './components/Layout';
 import WheelGame from './components/WheelGame';
 import FlappyGame from './components/FlappyGame';
 import ClickerGame from './components/ClickerGame';
+import RunnerGame from './components/RunnerGame';
 import WeatherPanel from './components/WeatherPanel';
 import Motivation from './components/Motivation';
+import Login from './components/Login';
 import './index.css';
 
 const Home = () => {
+  const { user } = useAuth();
+
   return (
     <section className="mode-section active">
       <div className="container">
         <header className="header" style={{ marginBottom: '2rem' }}>
           <h1 className="title">Bienvenido a los Duck Games</h1>
-          <p className="subtitle">Selecciona un juego para comenzar</p>
+          <p className="subtitle">
+            Sesión activa: <span style={{ color: 'var(--primary)', fontWeight: 'bold' }}>{user?.username}</span>
+          </p>
         </header>
 
         <main className="main-content">
@@ -53,6 +60,12 @@ const Home = () => {
               <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Goal Duck</h3>
               <p style={{ color: '#aaa' }}>Clicker Global</p>
             </NavLink>
+
+            <NavLink to="/runner" className="menu-card" style={{ textDecoration: 'none', color: 'inherit', padding: '2rem', background: 'rgba(255,255,255,0.05)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <div className="menu-icon" style={{ fontSize: '3rem', marginBottom: '1rem' }}>🏃</div>
+              <h3 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Duck Runner</h3>
+              <p style={{ color: '#aaa' }}>Corre sin parar</p>
+            </NavLink>
           </div>
         </main>
       </div>
@@ -62,6 +75,7 @@ const Home = () => {
 
 function App() {
   const [theme, setTheme] = useState('dark');
+  const { user, isLoading } = useAuth();
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('wheelTheme') || 'dark';
@@ -75,18 +89,36 @@ function App() {
     document.documentElement.setAttribute('data-theme', newTheme);
   };
 
+  if (isLoading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--dark-bg)' }}>
+        <div style={{ color: 'var(--text-primary)', fontSize: '1.5rem' }}>Cargando...</div>
+      </div>
+    );
+  }
+
   return (
     <BrowserRouter>
-      <Layout toggleTheme={handleThemeChange} currentTheme={theme}>
+      {!user ? (
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/wheel" element={<WheelGame />} />
-          <Route path="/flappy" element={<FlappyGame />} />
-          <Route path="/muack" element={<Motivation />} />
-          <Route path="/clicker" element={<ClickerGame />} />
-          <Route path="/weather" element={<WeatherPanel />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
-      </Layout>
+      ) : (
+        <Layout toggleTheme={handleThemeChange} currentTheme={theme}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/wheel" element={<WheelGame />} />
+            <Route path="/flappy" element={<FlappyGame />} />
+            <Route path="/muack" element={<Motivation />} />
+            <Route path="/clicker" element={<ClickerGame />} />
+            <Route path="/runner" element={<RunnerGame />} />
+            <Route path="/weather" element={<WeatherPanel />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </Layout>
+      )}
     </BrowserRouter>
   );
 }

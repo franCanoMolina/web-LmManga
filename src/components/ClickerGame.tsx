@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 // Common sound utility (reused)
 const playSound = (freq: number, type: 'sine' | 'square' | 'triangle' = 'sine', duration: number = 0.1) => {
@@ -26,25 +27,15 @@ const playClickSound = () => {
 
 
 const ClickerGame: React.FC = () => {
+    const { gameData, updateGoalDuckClicks } = useAuth();
     const [count, setCount] = useState(0);
     const [currentSkin, setCurrentSkin] = useState<'duck' | 'apple' | 'goat' | 'principito'>('duck');
     const [error, setError] = useState<string | null>(null);
 
-    // Initialize from LocalStorage
+    // Initialize from Firebase
     useEffect(() => {
-        try {
-            const savedCount = localStorage.getItem('golden_duck_clicks');
-            if (savedCount) {
-                setCount(parseInt(savedCount));
-            } else {
-                localStorage.setItem('golden_duck_clicks', '0');
-                setCount(0);
-            }
-        } catch (err: any) {
-            console.error("Error reading localStorage:", err);
-            setError("Error cargando progreso local");
-        }
-    }, []);
+        setCount(gameData.goalDuckClicks);
+    }, [gameData.goalDuckClicks]);
 
     const handleClick = (e: React.MouseEvent) => {
         createParticle(e.clientX, e.clientY);
@@ -52,7 +43,7 @@ const ClickerGame: React.FC = () => {
 
         const newCount = count + 1;
         setCount(newCount);
-        localStorage.setItem('golden_duck_clicks', newCount.toString());
+        updateGoalDuckClicks(newCount);
     };
 
     const createParticle = (x: number, y: number) => {
